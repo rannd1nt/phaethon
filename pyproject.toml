@@ -1,26 +1,47 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "unitflex"
-version = "0.9.3"
-description = "An Accurate and Flexible Unit Converter Library."
+name = "chisa"
+version = "0.1.0"
+description = "A Dimensional Algebra and Unit Conversion Engine for Physics and Engineering."
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
-  { name = "Zahraan Dzakii Tsaqiif", email = "vleaxorzz@gmail.com" }
+    {name = "Zahraan Dzakii Tsaqiif", email = "zahraandzakiits@gmail.com"}
 ]
-keywords = ["unit conversion", "conversion", "python library"]
+keywords = [
+    "physics", "unit conversion", "dimensional analysis", 
+    "engineering", "science", "education", "metrology"
+]
 classifiers = [
-  "Programming Language :: Python :: 3",
-  "License :: OSI Approved :: MIT License",
-  "Operating System :: OS Independent"
+    # Development Status
+    "Development Status :: 4 - Beta",
+    
+    # Intended Audiences
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    
+    # Topics
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    
+    # License & Environment
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    
+    # Supported Python Versions
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12"
 ]
 
-[project.urls]
-"Homepage" = "https://github.com/zranndts/unit-flex"
-"Documentation" = "https://github.com/zranndts/unit-flex#readme"
-"Source" = "https://github.com/zranndts/unit-flex"
-"Issues" = "https://github.com/zranndts/unit-flex/issues"
+[tool.setuptools.packages.find]
+where = ["src"]

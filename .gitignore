@@ -1,41 +1,48 @@
-# Bytecode Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
+*$py.class
 
-# Distribution / Build folder
-dist/
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
 build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
 *.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-# Virtual environments
-.env/
-.venv/
+# Virtual Environments
 venv/
 env/
+.env
+.venv
+env.bak/
+venv.bak/
 
-# IDE & Editor config files
-.idea/
+# IDEs and Editors
 .vscode/
-
-# Jupyter Notebook checkpoints
-.ipynb_checkpoints/
-
-# Windows files
-Thumbs.db
-Desktop.ini
-
-# Python environment
-*.env
-*.venv
-
-# UnitFlex generated files
-unitflex/__pycache__/
-
-# Temporary files
-*.log
-*.bak
+.idea/
 *.swp
+*.swo
 
 # Testing
-unitflex/tests/tests.py
+.pytest_cache/
+tests/
+htmlcov/
+.coverage
+.tox/
