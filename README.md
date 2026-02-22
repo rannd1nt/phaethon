@@ -182,10 +182,12 @@ print(theoretical_time.to(Second).mag)
 
 ### Part 2: Axiom Stacking & Derivation (Stellar Radiation)
 We can derive complex units from simple ones (Watts = Joules / Seconds) and stack Axioms to calculate stellar flux based on the Stefan-Boltzmann law:
+
 $$
 \text{Flux} =
 \left(\sigma T^4\right)\cos(\theta)
 $$
+
 ```python
 from chisa import axiom, const, vmath, C
 from chisa.units.power import PowerUnit, Watt
