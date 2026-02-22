@@ -1,249 +1,417 @@
+"""
+Axiom Engine Module.
+
+Defines a set of physical laws, constraints, and mathematical modifiers 
+that dynamically govern the instantiation and conversion of Chisa units.
+It acts as a physics rule engine utilizing Python decorators.
+"""
+
 import inspect
 import functools
 from decimal import Decimal
-from typing import Callable, Union, Optional, Dict, Any, List, Type
+from typing import Callable, Union, Optional, Dict, Any, List, Type, Literal, TypeVar, Tuple
 
 from ..exceptions import AxiomViolationError, DimensionMismatchError
 
-class Axiom:
+# NUMPY SOFT-DEPENDENCY CHECK
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
+
+class CtxProxy:
     """
-    Axiom defines a set of physical laws, constraints, and mathematical modifiers 
-    that dynamically govern the instantiation and conversion of Chisa units.
-    It acts as a physics rule engine using Python class decorators.
+    A declarative Context Variable proxy for Chisa Axioms.
+    Allows developers to build mathematical formulas using standard Python operators.
     """
-    def __init__(self) -> None:
-        pass
+    def __init__(self, key: Optional[str] = None, default: Any = 0.0, _evaluator: Optional[Callable] = None):
+        self.key = key
+        self.default = default
+        self._evaluator = _evaluator
 
-    def bound(
-        self, 
-        min_val: Optional[Union[float, Decimal, int]] = None, 
-        max_val: Optional[Union[float, Decimal, int]] = None, 
-        msg: Optional[str] = None
-    ) -> Callable:
-        """
-        Enforces boundary limits on a unit's scalar value during instantiation.
-        Prevents physical or mathematical impossibilities (e.g., negative Kelvin).
+    def __call__(self, context: Dict[str, Any]) -> Any:
+        if self._evaluator:
+            return self._evaluator(context)
+        return context.get(self.key, self.default)
 
-        Args:
-            min_val (Optional[Union[float, Decimal, int]]): The absolute minimum allowed value.
-            max_val (Optional[Union[float, Decimal, int]]): The absolute maximum allowed value.
-            msg (Optional[str]): A custom error message to display upon violation.
-
-        Returns:
-            Callable: A class decorator.
-        """
-        def decorator(cls: Type) -> Type:
-            original_init = cls.__init__
-            
-            @functools.wraps(original_init)
-            def new_init(self_obj: Any, value: Union[int, float, Decimal, str], context: Optional[Dict[str, Any]] = None) -> None:
-                original_init(self_obj, value, context)
-                if min_val is not None and self_obj.value < Decimal(str(min_val)):
-                    raise AxiomViolationError(msg or f"Value cannot be strictly less than {min_val}")
-                if max_val is not None and self_obj.value > Decimal(str(max_val)):
-                    raise AxiomViolationError(msg or f"Value cannot be strictly greater than {max_val}")
-            
-            cls.__init__ = new_init
-            return cls
-        return decorator
-
-    def shift(
-        self, 
-        ctx: Optional[str] = None, 
-        default: Union[float, Decimal, int] = 0.0, 
-        op: str = "add", 
-        formula: Optional[Callable[[Dict[str, Any]], Union[float, Decimal]]] = None
-    ) -> Callable:
-        """
-        Applies a linear shift (addition or subtraction) to the base offset of a unit.
-        The shift value can be statically defined, extracted dynamically from the context 
-        dictionary, or calculated via a custom formula (e.g., Celsius to Kelvin).
-
-        Args:
-            ctx (Optional[str]): The key to look for in the context dictionary.
-            default (Union[float, Decimal, int]): The fallback shift value if context is missing.
-            op (str): The operation to perform ('add' or 'sub'). Defaults to "add".
-            formula (Optional[Callable]): A custom function that takes the context dict and returns a scalar.
-
-        Returns:
-            Callable: A class decorator.
-        """
-        def decorator(cls: Type) -> Type:
-            orig_to_base = cls._to_base_value
-            orig_from_base = getattr(cls, '_from_base_value')
-
-            def get_ctx_val(context: Dict[str, Any]) -> Decimal:
-                if formula:
-                    return Decimal(str(formula(context)))
-                if ctx:
-                    return Decimal(str(context.get(ctx, default)))
-                return Decimal(str(default))
-
-            def new_to_base(self_obj: Any) -> Decimal:
-                base_val = orig_to_base(self_obj)
-                ctx_val = get_ctx_val(self_obj.context)
-                
-                if op == "add": return base_val + ctx_val
-                elif op == "sub": return base_val - ctx_val
-                return base_val
-
-            @classmethod
-            def new_from_base(cls_obj: Type, base_val: Decimal, context: Dict[str, Any]) -> Decimal:
-                ctx_val = get_ctx_val(context)
-                
-                if op == "add": base_val = base_val - ctx_val
-                elif op == "sub": base_val = base_val + ctx_val
-                return orig_from_base.__func__(cls_obj, base_val, context)
-
-            cls._to_base_value = new_to_base
-            cls._from_base_value = new_from_base
-            return cls
-        return decorator
-
-    def scale(
-        self, 
-        ctx: Optional[str] = None, 
-        default: Union[float, Decimal, int] = 1.0, 
-        formula: Optional[Callable[[Dict[str, Any]], Union[float, Decimal]]] = None
-    ) -> Callable:
-        """
-        Applies a scaling factor (multiplication or division) to the base multiplier.
-        Highly useful for context-dependent units like Mach speed (which scales based on temperature).
-
-        Args:
-            ctx (Optional[str]): The key to look for in the context dictionary.
-            default (Union[float, Decimal, int]): The fallback scale multiplier if context is missing.
-            formula (Optional[Callable]): A custom function that takes the context dict and returns a multiplier.
-
-        Returns:
-            Callable: A class decorator.
-        """
-        def decorator(cls: Type) -> Type:
-            orig_to_base = cls._to_base_value
-            orig_from_base = getattr(cls, '_from_base_value')
-
-            def get_ctx_val(context: Dict[str, Any]) -> Decimal:
-                if formula:
-                    return Decimal(str(formula(context)))
-                if ctx:
-                    return Decimal(str(context.get(ctx, default)))
-                return Decimal(str(default))
-
-            def new_to_base(self_obj: Any) -> Decimal:
-                base_val = orig_to_base(self_obj)
-                ctx_val = get_ctx_val(self_obj.context)
-                return base_val * ctx_val
-
-            @classmethod
-            def new_from_base(cls_obj: Type, base_val: Decimal, context: Dict[str, Any]) -> Decimal:
-                ctx_val = get_ctx_val(context)
-                return orig_from_base.__func__(cls_obj, base_val / ctx_val, context)
-
-            cls._to_base_value = new_to_base
-            cls._from_base_value = new_from_base
-            return cls
-        return decorator
-
-    def derive(
-        self, 
-        mul: Optional[List[Union[Type, float, int, str, Decimal]]] = None, 
-        div: Optional[List[Union[Type, float, int, str, Decimal]]] = None
-    ) -> Callable:
-        """
-        A powerful class decorator for Dimensional Synthesis.
-        Automatically calculates the 'base_multiplier' of a custom unit class based on 
-        the multiplication and division of other fundamental unit classes or scalar constants.
-        
-        Examples:
-            @axiom.derive(mul=[Newton, Meter]) -> Assembles the Joule unit.\n
-            @axiom.derive(mul=[0.5, Meter, Meter]) -> Assembles a custom triangle area unit.
-
-        Args:
-            mul (Optional[List]): A list of Unit Classes or scalar numbers to multiply.
-            div (Optional[List]): A list of Unit Classes or scalar numbers to divide by.
-
-        Returns:
-            Callable: A class decorator that injects the computed multiplier.
-        """
-        def decorator(cls: Type) -> Type:
-            mul_list = mul or []
-            div_list = div or []
-            
-            multiplier = Decimal('1.0')
-            
-            for item in mul_list:
-                if isinstance(item, (int, float, Decimal, str)):
-                    multiplier *= Decimal(str(item))
-                else:
-                    multiplier *= Decimal(str(getattr(item, 'base_multiplier', 1.0)))
-                    
-            for item in div_list:
-                if isinstance(item, (int, float, Decimal, str)):
-                    val = Decimal(str(item))
-                else:
-                    val = Decimal(str(getattr(item, 'base_multiplier', 1.0)))
-                    
-                if val == 0:
-                    raise ZeroDivisionError(f"Base multiplier or scalar cannot be zero in derive for {cls.__name__}.")
-                multiplier /= val
-                
-            # Derived units strictly represent intervals/ratios, thus offset must be stripped.
-            cls.base_offset = 0.0 
-            cls.base_multiplier = multiplier
-            return cls
-        return decorator
+    def __add__(self, other: Any) -> 'CtxProxy':
+        return CtxProxy(_evaluator=lambda c: self(c) + (other(c) if callable(other) else other))
     
-    def require(self, **dim_or_class: Union[str, Type]) -> Callable:
-        """
-        Enforces strict dimension or unit constraints on function arguments.
-        Acts as a protective guardrail for custom physics functions to prevent logical errors.
+    def __radd__(self, other: Any) -> 'CtxProxy':
+        return CtxProxy(_evaluator=lambda c: (other(c) if callable(other) else other) + self(c))
 
-        Behaviors:
-        - Pass a string (e.g., mass="mass") to strictly enforce a physical Dimension.
-        - Pass a Class (e.g., mass=Kilogram) to enforce an exact Unit Class (Strict Type Mode).
+    def __sub__(self, other: Any) -> 'CtxProxy':
+        return CtxProxy(_evaluator=lambda c: self(c) - (other(c) if callable(other) else other))
 
-        Args:
-            **dim_or_class: Keyword arguments mapping function parameter names to their constraints.
+    def __rsub__(self, other: Any) -> 'CtxProxy':
+        return CtxProxy(_evaluator=lambda c: (other(c) if callable(other) else other) - self(c))
 
-        Returns:
-            Callable: A function wrapper.
+    def __mul__(self, other: Any) -> 'CtxProxy':
+        return CtxProxy(_evaluator=lambda c: self(c) * (other(c) if callable(other) else other))
+
+    def __rmul__(self, other: Any) -> 'CtxProxy':
+        return CtxProxy(_evaluator=lambda c: (other(c) if callable(other) else other) * self(c))
+
+    def __truediv__(self, other: Any) -> 'CtxProxy':
+        return CtxProxy(_evaluator=lambda c: self(c) / (other(c) if callable(other) else other))
+
+    def __rtruediv__(self, other: Any) -> 'CtxProxy':
+        return CtxProxy(_evaluator=lambda c: (other(c) if callable(other) else other) / self(c))
+
+    def __pow__(self, other: Any) -> 'CtxProxy':
+        return CtxProxy(_evaluator=lambda c: self(c) ** (other(c) if callable(other) else other))
+
+C = CtxProxy
+
+T_Class = TypeVar('T_Class', bound=type)
+T_Func = TypeVar('T_Func', bound=Callable)
+
+
+# =========================================================================
+# INTERNAL TYPE NORMALIZER (THE BULLETPROOF FUNNEL)
+# =========================================================================
+def _normalize_types(val_a: Any, val_b: Any) -> Tuple[Any, Any]:
+    """
+    Aligns two variables for mathematical operations to prevent crashes.
+    - If either is a NumPy array, Decimals are strictly cast to floats.
+    - If neither is an array, floats are strictly cast to Decimals.
+    """
+    a_is_arr = HAS_NUMPY and isinstance(val_a, (np.ndarray, np.generic))
+    b_is_arr = HAS_NUMPY and isinstance(val_b, (np.ndarray, np.generic))
+
+    if a_is_arr or b_is_arr:
+        # NumPy mode: Decimals must die.
+        if isinstance(val_a, Decimal): val_a = float(val_a)
+        if isinstance(val_b, Decimal): val_b = float(val_b)
+        return val_a, val_b
+    
+    # Scalar mode: Everything must be Decimal.
+    if isinstance(val_a, (float, int)): val_a = Decimal(str(val_a))
+    if isinstance(val_b, (float, int)): val_b = Decimal(str(val_b))
+    
+    return val_a, val_b
+
+
+def bound(
+    min_val: Optional[Union[float, Decimal, int]] = None, 
+    max_val: Optional[Union[float, Decimal, int]] = None, 
+    msg: Optional[str] = None
+) -> Callable[[T_Class], T_Class]:
+    """
+    Enforces physical boundary limits on a unit's magnitude during instantiation.
+
+    Args:
+        min_val: The absolute minimum allowed value.
+        max_val: The absolute maximum allowed value.
+        msg: A custom error message thrown upon violation.
+
+    Returns:
+        A class decorator enforcing the boundary.
+    """
+    def decorator(cls: T_Class) -> T_Class:
+        original_init = cls.__init__
+        
+        @functools.wraps(original_init)
+        def new_init(self_obj: Any, value: Union[int, float, Decimal, str, Any], context: Optional[Dict[str, Any]] = None) -> None:
+            original_init(self_obj, value, context)
+            val = self_obj._value
             
-        Raises:
-            DimensionMismatchError: If the argument does not match the expected dimension.
-            TypeError: If the argument violates the strict Unit Class checking.
-        """
-        def decorator(func: Callable) -> Callable:
-            sig = inspect.signature(func)
-            @functools.wraps(func)
-            def wrapper(*args: Any, **kwargs: Any) -> Any:
-                bound_args = sig.bind(*args, **kwargs)
-                bound_args.apply_defaults()
-                
-                for param_name, param_value in bound_args.arguments.items():
-                    if param_name in dim_or_class:
-                        constraint = dim_or_class[param_name]
-                        
-                        if isinstance(constraint, str):
-                            if not hasattr(param_value, 'dimension'):
-                                raise DimensionMismatchError(
-                                    expected_dim=constraint, 
-                                    received_dim=type(param_value).__name__,
-                                    context=f"Argument '{param_name}' is not a valid Chisa unit object"
-                                )
-                            if param_value.dimension != constraint:
-                                raise DimensionMismatchError(
-                                    expected_dim=constraint, 
-                                    received_dim=param_value.dimension,
-                                    context=f"Argument '{param_name}' in function '{func.__name__}'"
-                                )
-                                
-                        elif isinstance(constraint, type):
-                            if not isinstance(param_value, constraint):
-                                raise TypeError(
-                                    f"Strict Type Violation: Argument '{param_name}' expected exactly "
-                                    f"'{constraint.__name__}', but got '{type(param_value).__name__}'."
-                                )
+            TOLERANCE = 1e-12 
+            
+            if HAS_NUMPY and isinstance(val, (np.ndarray, np.generic)):
+                if min_val is not None and np.any(val < (float(min_val) - TOLERANCE)):
+                    raise AxiomViolationError(msg or f"Array contains values strictly less than {min_val}")
+                if max_val is not None and np.any(val > (float(max_val) + TOLERANCE)):
+                    raise AxiomViolationError(msg or f"Array contains values strictly greater than {max_val}")
+            else:
+                if min_val is not None and val < Decimal(str(min_val)):
+                    raise AxiomViolationError(msg or f"Value cannot be strictly less than {min_val}")
+                if max_val is not None and val > Decimal(str(max_val)):
+                    raise AxiomViolationError(msg or f"Value cannot be strictly greater than {max_val}")
+        
+        cls.__init__ = new_init
+        return cls
+    return decorator
+
+
+def shift(
+    ctx: Optional[str] = None, 
+    default: Union[float, Decimal, int] = 0.0, 
+    op: Literal["add", "sub"] = "add", 
+    formula: Optional[Callable[[Dict[str, Any]], Union[float, Decimal]]] = None
+) -> Callable[[T_Class], T_Class]:
+    """
+    Applies a linear shift (addition or subtraction) to the base offset of a unit.
+    Driven dynamically by environmental context variables.
+
+    Args:
+        ctx: The dictionary key to search for in the unit's context.
+        default: Fallback shift value if the context key is missing.
+        op: Mathematical operation, strictly either "add" or "sub". Defaults to "add".
+        formula: A custom physics function to calculate complex shifts.
+
+    Returns:
+        A class decorator overriding base logic.
+    """
+    def decorator(cls: T_Class) -> T_Class:
+        orig_to_base = cls._to_base_value
+        orig_from_base = getattr(cls, '_from_base_value')
+
+        def get_ctx_val(context: Dict[str, Any]) -> Union[Decimal, Any]:
+            res = default
+            if formula:
+                if isinstance(formula, CtxProxy):
+                    res = formula(context)
+                    if hasattr(res, '_to_base_value'):
+                        res = res._to_base_value()
+                else:
+                    sig = inspect.signature(formula)
+                    kwargs = {}
+                    for param_name, param in sig.parameters.items():
+                        if param_name in context:
+                            val = context[param_name]
                             
-                return func(*args, **kwargs)
-            return wrapper
-        return decorator
+                            if hasattr(val, 'to') and hasattr(val, 'mag'):
+                                pass 
+                            elif isinstance(val, Decimal):
+                                val = float(val)
+                            kwargs[param_name] = val
+                            
+                        elif param.default is not inspect.Parameter.empty:
+                            kwargs[param_name] = param.default
+                        else:
+                            kwargs[param_name] = None
+                    res = formula(**kwargs)
+            elif ctx:
+                val = context.get(ctx, default)
+                if hasattr(val, '_to_base_value'):
+                    val = val._to_base_value()
+                res = val
+
+            if HAS_NUMPY and isinstance(res, (np.ndarray, np.generic)):
+                return res
+            if isinstance(res, Decimal):
+                return res
+            return Decimal(str(res))
+
+        def new_to_base(self_obj: Any) -> Union[Decimal, Any]:
+            base_val = orig_to_base(self_obj)
+            ctx_val = get_ctx_val(self_obj.context)
+            
+            base_val, ctx_val = _normalize_types(base_val, ctx_val)
+            
+            if op == "add": return base_val + ctx_val
+            elif op == "sub": return base_val - ctx_val
+            return base_val
+
+        @classmethod
+        def new_from_base(cls_obj: Type, base_val: Union[Decimal, Any], context: Dict[str, Any]) -> Union[Decimal, Any]:
+            ctx_val = get_ctx_val(context)
+            
+            base_val, ctx_val = _normalize_types(base_val, ctx_val)
+            
+            if op == "add": base_val = base_val - ctx_val
+            elif op == "sub": base_val = base_val + ctx_val
+            return orig_from_base.__func__(cls_obj, base_val, context)
+
+        cls._to_base_value = new_to_base
+        cls._from_base_value = new_from_base
+        return cls
+    return decorator
+
+
+def scale(
+    ctx: Optional[str] = None, 
+    default: Union[float, Decimal, int] = 1.0, 
+    formula: Optional[Callable[[Dict[str, Any]], Union[float, Decimal]]] = None
+) -> Callable[[T_Class], T_Class]:
+    """
+    Applies a dynamic scaling factor (multiplication/division) to the base multiplier.
+    Safe for both Decimal scalars and NumPy arrays.
+
+    Args:
+        ctx: The dictionary key in the unit's context.
+        default: Fallback multiplier if the context key is missing.
+        formula: A custom physics function to calculate dynamic scaling.
+
+    Returns:
+        A class decorator overriding base logic.
+    """
+    def decorator(cls: T_Class) -> T_Class:
+        orig_to_base = cls._to_base_value
+        orig_from_base = getattr(cls, '_from_base_value')
+
+        def get_ctx_val(context: Dict[str, Any]) -> Union[Decimal, Any]:
+            res = default
+            if formula:
+                if isinstance(formula, CtxProxy):
+                    res = formula(context)
+                    if hasattr(res, '_to_base_value'):
+                        res = res._to_base_value()
+                else:
+                    sig = inspect.signature(formula)
+                    kwargs = {}
+                    for param_name, param in sig.parameters.items():
+                        if param_name in context:
+                            val = context[param_name]
+                            
+                            if hasattr(val, 'to') and hasattr(val, 'mag'):
+                                pass 
+                            elif isinstance(val, Decimal):
+                                val = float(val)
+                            kwargs[param_name] = val
+                            
+                        elif param.default is not inspect.Parameter.empty:
+                            kwargs[param_name] = param.default
+                        else:
+                            kwargs[param_name] = None
+                    res = formula(**kwargs)
+            elif ctx:
+                val = context.get(ctx, default)
+                if hasattr(val, '_to_base_value'):
+                    val = val._to_base_value()
+                res = val
+
+            if HAS_NUMPY and isinstance(res, (np.ndarray, np.generic)):
+                return res
+            if isinstance(res, Decimal):
+                return res
+            return Decimal(str(res))
+
+        def new_to_base(self_obj: Any) -> Union[Decimal, Any]:
+            base_val = orig_to_base(self_obj)
+            ctx_val = get_ctx_val(self_obj.context)
+            
+            base_val, ctx_val = _normalize_types(base_val, ctx_val)
+                
+            return base_val * ctx_val
+
+        @classmethod
+        def new_from_base(cls_obj: Type, base_val: Union[Decimal, Any], context: Dict[str, Any]) -> Union[Decimal, Any]:
+            ctx_val = get_ctx_val(context)
+            
+            base_val, ctx_val = _normalize_types(base_val, ctx_val)
+                
+            return orig_from_base.__func__(cls_obj, base_val / ctx_val, context)
+
+        cls._to_base_value = new_to_base
+        cls._from_base_value = new_from_base
+        return cls
+    return decorator
+
+
+def derive(
+    mul: Optional[List[Union[Type, float, int, str, Decimal]]] = None, 
+    div: Optional[List[Union[Type, float, int, str, Decimal]]] = None
+) -> Callable[[T_Class], T_Class]:
+    """
+    A class decorator for Dimensional Synthesis.
+    Pre-calculates base multipliers from composing units safely at import time.
+
+    Args:
+        mul: A list of Unit Classes or pure numbers to multiply.
+        div: A list of Unit Classes or pure numbers to divide.
+
+    Returns:
+        A class decorator synthesizing the new unit's multiplier.
+    """
+    def decorator(cls: T_Class) -> T_Class:
+        mul_list = mul or []
+        div_list = div or []
+        
+        multiplier = Decimal('1.0')
+        
+        for item in mul_list:
+            if isinstance(item, (int, float, Decimal, str)):
+                multiplier *= Decimal(str(item))
+            else:
+                multiplier *= Decimal(str(getattr(item, 'base_multiplier', 1.0)))
+                
+        for item in div_list:
+            if isinstance(item, (int, float, Decimal, str)):
+                val = Decimal(str(item))
+            else:
+                val = Decimal(str(getattr(item, 'base_multiplier', 1.0)))
+                
+            if val == 0:
+                raise ZeroDivisionError(f"Base multiplier or scalar cannot be zero in derive for {cls.__name__}.")
+            multiplier /= val
+            
+        cls.base_offset = 0.0 
+        cls.base_multiplier = multiplier
+        return cls
+    return decorator
+
+
+def require(**dim_or_class: Union[str, Type]) -> Callable[[T_Func], T_Func]:
+    """
+    Enforces strict dimension or specific unit constraints on function arguments.
+    Acts as a guardrail for custom physics functions preventing logic errors.
+
+    Args:
+        **dim_or_class: Keyword arguments mapping function parameter names 
+            to either a required dimension string (e.g., 'mass') or a 
+            specific BaseUnit class (e.g., Newton).
+
+    Returns:
+        A function wrapper validating the arguments before execution.
+    """
+    def decorator(func: T_Func) -> T_Func:
+        sig = inspect.signature(func)
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            bound_args = sig.bind(*args, **kwargs)
+            bound_args.apply_defaults()
+            
+            for param_name, param_value in bound_args.arguments.items():
+                if param_name in dim_or_class:
+                    constraint = dim_or_class[param_name]
+                    
+                    if isinstance(constraint, str):
+                        if not hasattr(param_value, 'dimension'):
+                            raise DimensionMismatchError(
+                                expected_dim=constraint, 
+                                received_dim=type(param_value).__name__,
+                                context=f"Argument '{param_name}' is not a valid Chisa unit object"
+                            )
+                        if param_value.dimension != constraint:
+                            raise DimensionMismatchError(
+                                expected_dim=constraint, 
+                                received_dim=param_value.dimension,
+                                context=f"Argument '{param_name}' in function '{func.__name__}'"
+                            )
+                            
+                    elif isinstance(constraint, type):
+                        if not isinstance(param_value, constraint):
+                            raise TypeError(
+                                f"Strict Type Violation: Argument '{param_name}' expected exactly "
+                                f"'{constraint.__name__}', but got '{type(param_value).__name__}'."
+                            )
+                        
+            return func(*args, **kwargs)
+        return wrapper # type: ignore
+    return decorator
+
+def prepare(**unit_mappings: Type[Any]) -> Callable[[T_Func], T_Func]:
+    """
+    Pre-processes formula arguments for pure mathematical functions.
+    Automatically intercepts Chisa objects, converts them to the specified 
+    target unit, and extracts their raw magnitude (.mag) before execution.
+    """
+    def decorator(func: T_Func) -> T_Func:
+        sig = inspect.signature(func)
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            bound_args = sig.bind(*args, **kwargs)
+            bound_args.apply_defaults()
+
+            for param_name, target_class in unit_mappings.items():
+                if param_name in bound_args.arguments:
+                    val = bound_args.arguments[param_name]
+                    if hasattr(val, 'to') and hasattr(val, 'mag'):
+                        bound_args.arguments[param_name] = val.to(target_class).mag
+
+            return func(*bound_args.args, **bound_args.kwargs)
+        return wrapper
+    return decorator

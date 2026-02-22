@@ -8,9 +8,8 @@ The absolute base unit for this dimension is the Pascal (Pa).
 """
 
 from ..core.base import BaseUnit
-from ..core.axioms import Axiom
-
-axiom = Axiom()
+from ..core import axioms as axiom
+from ..core import constants as const
 
 class PressureUnit(BaseUnit):
     """
@@ -27,12 +26,12 @@ class AbsolutePressureUnit(PressureUnit):
     """
     pass
 
-@axiom.shift(ctx="atm_pressure_pa", default=101325.0, op="add")
+@axiom.shift(ctx="atmospheric_pressure", default=const.STANDARD_ATMOSPHERE_PA, op="add")
 class GaugePressureUnit(PressureUnit):
     """
     Represents gauge pressure measurements (e.g., psig, barg).
     The value is automatically shifted by the local atmospheric pressure 
-    (provided via the 'atm_pressure_pa' context key) to obtain the absolute base value.
+    (provided via the 'atmospheric_pressure' context key).
     """
     pass
 
@@ -121,17 +120,17 @@ class BarGauge(GaugePressureUnit):
 class Atmosphere(AbsolutePressureUnit):
     symbol = "atm"
     aliases = ["atmosphere", "atmospheres"]
-    base_multiplier = 101325.0
+    base_multiplier = const.STANDARD_ATMOSPHERE_PA
 
 class Torr(AbsolutePressureUnit):
     symbol = "torr"
     aliases = ["mmhg", "millimeter of mercury", "millimeters of mercury"]
-    base_multiplier = 133.322
+    base_multiplier = const.TORR_TO_PA
 
 class InchOfMercury(AbsolutePressureUnit):
     symbol = "inhg"
     aliases = ["inch of mercury", "inches of mercury"]
-    base_multiplier = 3386.39
+    base_multiplier = const.INHG_TO_PA
 
 
 # =========================================================================
@@ -141,17 +140,18 @@ class PSI(AbsolutePressureUnit):
     """Pounds per square inch (Absolute by default in most scientific contexts)."""
     symbol = "psi"
     aliases = ["psia", "pound per square inch", "pounds per square inch"]
-    base_multiplier = 6894.76
+    base_multiplier = const.PSI_TO_PA
 
 class PSIG(GaugePressureUnit):
-    """Pounds per square inch (Gauge). Value is influenced by 'atm_pressure_pa'."""
+    """Pounds per square inch (Gauge). Value is influenced by atmospheric pressure."""
     symbol = "psig"
-    base_multiplier = 6894.76
+    base_multiplier = const.PSI_TO_PA
 
 class KSI(AbsolutePressureUnit):
     symbol = "ksi"
     aliases = ["kip per square inch", "kips per square inch"]
-    base_multiplier = 6894760.0
+    # 1 KSI = 1000 PSI
+    base_multiplier = const.PSI_TO_PA * 1000.0
 
 
 # =========================================================================
@@ -172,17 +172,20 @@ class TechnicalAtmosphere(AbsolutePressureUnit):
         "technical atmosphere", "technical atmospheres", 
         "kgf/cm2", "kgf/cm²", "kilogram-force per square centimeter", "kilogram-force/square centimeter"
     ]
-    base_multiplier = 98066.5
+    # kgf/cm² = gravity * 10000 (because 1 m² = 10000 cm²)
+    base_multiplier = const.STANDARD_GRAVITY * 10000.0
 
 class KilogramForcePerSqMeter(AbsolutePressureUnit):
     symbol = "kgf/m2"
     aliases = ["kgf/m²", "kilogram-force per square meter", "kgf per m2"]
-    base_multiplier = 9.80665
+    # Exactly equal to gravity acceleration
+    base_multiplier = const.STANDARD_GRAVITY
 
 class TonForcePerSqMeter(AbsolutePressureUnit):
     symbol = "tf/m2"
     aliases = ["tf/m²", "ton-force per square meter", "tf per m²"]
-    base_multiplier = 9806650.0
+    # 1 Metric Ton = 1000 kg
+    base_multiplier = const.STANDARD_GRAVITY * 1000.0
 
 
 # =========================================================================
@@ -191,9 +194,11 @@ class TonForcePerSqMeter(AbsolutePressureUnit):
 class TonForcePerSqInch(AbsolutePressureUnit):
     symbol = "tsi"
     aliases = ["ton per square inch", "tons per square inch"]
-    base_multiplier = 1.379e7
+    # US Short Ton = 2000 lbs. So TSI = 2000 * PSI
+    base_multiplier = const.PSI_TO_PA * 2000.0
 
 class TonForcePerSqFoot(AbsolutePressureUnit):
     symbol = "tsf"
     aliases = ["ton per square foot", "tons per square foot"]
-    base_multiplier = 9.578e4
+    # 1 sq ft = 144 sq in. So TSF = (2000 * PSI) / 144
+    base_multiplier = (const.PSI_TO_PA * 2000.0) / 144.0

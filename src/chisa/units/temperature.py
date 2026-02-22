@@ -10,9 +10,8 @@ as the practical 1:1 scaling reference.
 
 from decimal import Decimal
 from ..core.base import BaseUnit
-from ..core.axioms import Axiom
-
-axiom = Axiom()
+from ..core import axioms as axiom
+from ..core import constants as const
 
 class TemperatureUnit(BaseUnit):
     """
@@ -26,7 +25,7 @@ class TemperatureUnit(BaseUnit):
 # =========================================================================
 # 1. CELSIUS (BASE REFERENCE)
 # =========================================================================
-@axiom.bound(min_val=-273.15, msg="Temperature cannot drop below Absolute Zero (-273.15 °C)!")
+@axiom.bound(min_val=const.ABSOLUTE_ZERO_C, msg=f"Temperature cannot drop below Absolute Zero ({const.ABSOLUTE_ZERO_C} °C)!")
 class Celsius(TemperatureUnit):
     symbol = "c"
     aliases = ["celsius", "celcius", "°c"]
@@ -37,42 +36,44 @@ class Celsius(TemperatureUnit):
 # =========================================================================
 # 2. FAHRENHEIT
 # =========================================================================
-@axiom.bound(min_val=-459.67, msg="Physics Violation: Temperature cannot drop below Absolute Zero (-459.67 °F)!")
+@axiom.bound(min_val=const.ABSOLUTE_ZERO_F, msg=f"Physics Violation: Temperature cannot drop below Absolute Zero ({const.ABSOLUTE_ZERO_F} °F)!")
 class Fahrenheit(TemperatureUnit):
     symbol = "f"
     aliases = ["fahrenheit", "°f"]
-    base_offset = -32.0
+    # Offset: Minus freezing point
+    base_offset = -const.FAHRENHEIT_OFFSET
     base_multiplier = Decimal('5') / Decimal('9')
 
 
 # =========================================================================
 # 3. KELVIN (ABSOLUTE THERMODYNAMIC SCALE)
 # =========================================================================
-@axiom.bound(min_val=0, msg="Physics Violation: Temperature cannot drop below Absolute Zero (0 K)!")
+@axiom.bound(min_val=const.ABSOLUTE_ZERO_K, msg=f"Physics Violation: Temperature cannot drop below Absolute Zero ({const.ABSOLUTE_ZERO_K} K)!")
 class Kelvin(TemperatureUnit):
     symbol = "k"
     aliases = ["kelvin", "°k"]
-    base_offset = -273.15
+    base_offset = -const.ZERO_CELSIUS_K
     base_multiplier = 1.0
 
 
 # =========================================================================
 # 4. RANKINE
 # =========================================================================
-@axiom.bound(min_val=0, msg="Physics Violation: Temperature cannot drop below Absolute Zero (0 °R)!")
+@axiom.bound(min_val=const.ABSOLUTE_ZERO_K, msg=f"Physics Violation: Temperature cannot drop below Absolute Zero ({const.ABSOLUTE_ZERO_K} °R)!")
 class Rankine(TemperatureUnit):
     symbol = "r"
     aliases = ["rankine", "°r"]
-    base_offset = -491.67
+    base_offset = -const.RANKINE_OFFSET
     base_multiplier = Decimal('5') / Decimal('9')
 
 
 # =========================================================================
 # 5. REAUMUR
 # =========================================================================
-@axiom.bound(min_val=-218.52, msg="Physics Violation: Temperature cannot drop below Absolute Zero (-218.52 °Re)!")
+@axiom.bound(min_val=const.ABSOLUTE_ZERO_RE, msg=f"Physics Violation: Temperature cannot drop below Absolute Zero ({const.ABSOLUTE_ZERO_RE} °Re)!")
 class Reaumur(TemperatureUnit):
     symbol = "re"
     aliases = ["reaumur", "réaumur", "°re", "°ré"]
     base_offset = 0.0
+    # Multiplier: 5/4 = 1.25
     base_multiplier = 1.25

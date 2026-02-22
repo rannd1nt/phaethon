@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "chisa"
 version = "0.1.0"
-description = "A Dimensional Algebra and Unit Conversion Engine for Physics and Engineering."
+description = "A logic-driven dimensional algebra and strict physics modeling framework."
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
@@ -14,7 +14,11 @@ authors = [
 ]
 keywords = [
     "physics", "unit conversion", "dimensional analysis", 
-    "engineering", "science", "education", "metrology"
+    "engineering", "science", "metrology", "astrophysics", "numpy"
+]
+
+dependencies = [
+    "numpy>=1.26.0"
 ]
 classifiers = [
     # Development Status
@@ -28,6 +32,7 @@ classifiers = [
     # Topics
     "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering :: Mathematics",
     "Topic :: Software Development :: Libraries :: Python Modules",
     
     # License & Environment
@@ -40,7 +45,8 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12"
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13"
 ]
 
 [tool.setuptools.packages.find]

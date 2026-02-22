@@ -8,9 +8,9 @@ The absolute base unit for this dimension is the Byte (B).
 """
 
 from ..core.base import BaseUnit
-from ..core.axioms import Axiom
+from ..core import axioms as axiom
+from ..core import constants as const
 
-axiom = Axiom()
 
 @axiom.bound(min_val=0, msg="Data size cannot be negative!")
 class DataUnit(BaseUnit):
@@ -27,12 +27,12 @@ class DataUnit(BaseUnit):
 class Bit(DataUnit):
     symbol = "b"
     aliases = ["bit", "bits", "bps"]
-    base_multiplier = 0.125  # 1 Bit = 1/8 Byte
+    base_multiplier = const.BYTES_PER_BIT
 
 class Nibble(DataUnit):
     symbol = "nibble"
     aliases = ["nibbles"]
-    base_multiplier = 0.5    # 1 Nibble = 4 Bits = 1/2 Byte
+    base_multiplier = const.BYTES_PER_NIBBLE
 
 class Byte(DataUnit):
     """The fundamental base unit for the data dimension."""
@@ -43,6 +43,7 @@ class Byte(DataUnit):
 
 # =========================================================================
 # 2. METRIC / SI BYTES (Base 10 / 1000)
+# (Scientific notation '1eX' is mathematically standard and clean here)
 # =========================================================================
 class Kilobyte(DataUnit):
     symbol = "KB"
@@ -76,27 +77,27 @@ class Petabyte(DataUnit):
 class Kibibyte(DataUnit):
     symbol = "KiB"
     aliases = ["kibibyte", "kibibytes", "kib"]
-    base_multiplier = 1024.0
+    base_multiplier = const.IEC_BASE
 
 class Mebibyte(DataUnit):
     symbol = "MiB"
     aliases = ["mebibyte", "mebibytes", "mib"]
-    base_multiplier = 1048576.0  # 1024^2
+    base_multiplier = const.IEC_BASE ** 2
 
 class Gibibyte(DataUnit):
     symbol = "GiB"
     aliases = ["gibibyte", "gibibytes", "gib"]
-    base_multiplier = 1073741824.0  # 1024^3
+    base_multiplier = const.IEC_BASE ** 3
 
 class Tebibyte(DataUnit):
     symbol = "TiB"
     aliases = ["tebibyte", "tebibytes", "tib"]
-    base_multiplier = 1099511627776.0  # 1024^4
+    base_multiplier = const.IEC_BASE ** 4
 
 class Pebibyte(DataUnit):
     symbol = "PiB"
     aliases = ["pebibyte", "pebibytes", "pib"]
-    base_multiplier = 1125899906842624.0  # 1024^5
+    base_multiplier = const.IEC_BASE ** 5
 
 
 # =========================================================================
@@ -105,19 +106,20 @@ class Pebibyte(DataUnit):
 class Kilobit(DataUnit):
     symbol = "Kb"
     aliases = ["kilobit", "kilobits", "kbit", "kbps"]
-    base_multiplier = 125.0  # 1000 bits / 8
+    # 1000 bits converted to Bytes
+    base_multiplier = 1e3 * const.BYTES_PER_BIT
 
 class Megabit(DataUnit):
     symbol = "Mb"
     aliases = ["megabit", "megabits", "mbit", "mbps"]
-    base_multiplier = 125000.0  # 1,000,000 bits / 8
+    base_multiplier = 1e6 * const.BYTES_PER_BIT
 
 class Gigabit(DataUnit):
     symbol = "Gb"
     aliases = ["gigabit", "gigabits", "gbit", "gbps"]
-    base_multiplier = 125000000.0
+    base_multiplier = 1e9 * const.BYTES_PER_BIT
 
 class Terabit(DataUnit):
     symbol = "Tb"
     aliases = ["terabit", "terabits", "tbit", "tbps"]
-    base_multiplier = 125000000000.0
+    base_multiplier = 1e12 * const.BYTES_PER_BIT

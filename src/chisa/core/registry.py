@@ -1,4 +1,4 @@
-from typing import Dict, List, Type, Optional, Set
+from typing import Dict, List, Type, Optional, Set, Any, Union
 from ..exceptions import UnitNotFoundError, DimensionMismatchError, AmbiguousUnitError
 
 class UnitRegistry:
@@ -7,20 +7,13 @@ class UnitRegistry:
     to their respective classes using a Multi-Mapping architecture.
     """
     def __init__(self) -> None:
-        # Multi-mapping dictionary to handle symbol collisions across dimensions
-        # Example: {'m': [<class 'Meter'>, <class 'Minute'>]}
         self._units: Dict[str, List[Type]] = {}
 
     def _register(self, cls: Type) -> None:
-        """
-        Internal method to automatically register a unit class.
-        Employs a Multi-Mapping architecture to handle symbol collisions.
-        """
         def add_alias(alias: str) -> None:
             key = alias.lower().strip()
             if key not in self._units:
                 self._units[key] = []
-
             if cls not in self._units[key]:
                 self._units[key].append(cls)
 
@@ -32,29 +25,13 @@ class UnitRegistry:
                 add_alias(alias)
     
     def get_unit_class(self, unit_name: str, expected_dim: Optional[str] = None) -> Type:
-        """
-        Retrieves a unit class based on its name or alias.
-        Supports dimension filtering to resolve ambiguities (e.g., 'm' for meter vs. minute).
-
-        Args:
-            unit_name (str): The symbol or alias of the unit.
-            expected_dim (Optional[str]): The expected physical dimension to filter by.
-
-        Returns:
-            Type: The corresponding unit class.
-
-        Raises:
-            UnitNotFoundError: If the unit is not found in the registry.
-            DimensionMismatchError: If the resolved unit does not match the expected dimension.
-            AmbiguousUnitError: If the unit matches multiple dimensions and expected_dim is not provided.
-        """
+        """Internal engine method to resolve string abbreviations to classes."""
         key = unit_name.lower().strip()
         candidates = self._units.get(key)
         
         if not candidates:
             raise UnitNotFoundError(unit_name)
             
-        # If the expected dimension is known, filter the candidates to avoid ambiguity
         if expected_dim:
             for cls in candidates:
                 if getattr(cls, 'dimension', None) == expected_dim:
@@ -65,42 +42,22 @@ class UnitRegistry:
                 context=f"Resolving target '{unit_name}'"
             )
 
-        # If no expected dimension is provided, check for cross-dimensional collisions
         if len(candidates) > 1:
             dims = [getattr(c, 'dimension', 'unknown') for c in candidates]
             raise AmbiguousUnitError(unit_name, dims)
             
         return candidates[0]
 
-    def get_base_unit(self, dimension: str) -> Type:
-        """
-        Finds the Base Unit class (the absolute reference point) for a specific dimension.
-        Base Units are identified by a base_multiplier of 1.0 and a base_offset of 0.0.
-
-        Args:
-            dimension (str): The physical dimension to query.
-
-        Returns:
-            Type: The Base Unit class.
-
-        Raises:
-            ValueError: If no valid Base Unit is found for the given dimension.
-        """
+    def baseof(self, dimension: str) -> Type:
         dimension = dimension.lower().strip()
         for candidates in self._units.values():
             for cls in candidates:
                 if getattr(cls, 'dimension', None) == dimension:
                     if getattr(cls, 'base_multiplier', None) == 1.0 and getattr(cls, 'base_offset', 0.0) == 0.0:
                         return cls
-        raise ValueError(f"Dimension '{dimension}' does not have a valid Base Unit in the registry.")
+        raise ValueError(f"Dimension '{dimension}' does not have a valid Base Unit.")
 
-    def get_dimensions(self) -> List[str]:
-        """
-        Retrieves a list of all unique physical dimensions currently supported by the registry.
-
-        Returns:
-            List[str]: A sorted list of dimension names.
-        """
+    def dims(self) -> List[str]:
         dims: Set[str] = set()
         for candidates in self._units.values():
             for cls in candidates:
@@ -108,17 +65,17 @@ class UnitRegistry:
                     dims.add(cls.dimension)
         return sorted(list(dims))
 
-    def get_units_by_dimension(self, dimension: str) -> List[str]:
-        """
-        Retrieves all primary symbols (excluding aliases) associated with a specific dimension.
-
-        Args:
-            dimension (str): The physical dimension to query.
-
-        Returns:
-            List[str]: A sorted list of primary unit symbols.
-        """
+    def unitsin(self, dimension: str, ascls: bool = False) -> List[Union[str, Type]]:
         dimension = dimension.lower().strip()
+
+        if ascls:
+            classes: Set[Type] = set()
+            for candidates in self._units.values():
+                for cls in candidates:
+                    if getattr(cls, 'dimension', None) == dimension:
+                        classes.add(cls)
+            return sorted(list(classes), key=lambda c: c.__name__)
+        
         symbols: Set[str] = set()
         for candidates in self._units.values():
             for cls in candidates:
@@ -126,20 +83,60 @@ class UnitRegistry:
                     symbols.add(cls.symbol)
         return sorted(list(symbols))
 
-    def dimension_of(self, unit_name: str) -> str:
-        """
-        Resolves the physical dimension of a given unit string.
-
-        Args:
-            unit_name (str): The symbol or alias of the unit.
-
-        Returns:
-            str: The physical dimension of the unit.
-
-        Raises:
-            AmbiguousUnitError: If the unit input is ambiguous and maps to multiple dimensions.
-        """
-        cls = self.get_unit_class(unit_name)
-        return getattr(cls, 'dimension', 'unknown')
+    def dimof(self, obj: Any) -> str:
+        if hasattr(obj, 'dimension') and getattr(obj, 'dimension'):
+            return getattr(obj, 'dimension')
+            
+        if isinstance(obj, str):
+            try:
+                cls = self.get_unit_class(obj)
+                return getattr(cls, 'dimension', 'unknown')
+            except Exception:
+                pass
+                
+        return 'unknown'
     
 default_ureg = UnitRegistry()
+
+
+def baseof(dimension: str) -> Type:
+    """
+    Retrieves the base unit class (the absolute reference point) for a dimension.
+    Args:
+        dimension: The dimension name (e.g., 'mass').
+
+    >>> chisa.baseof('temperature') -> <class 'Celsius'>
+    """
+    return default_ureg.baseof(dimension)
+
+def dims() -> List[str]:
+    """
+    Retrieves a list of all unique physical dimensions currently loaded.
+
+    >>> chisa.dims() -> ['area', 'mass', 'speed', ...]
+    """
+    return default_ureg.dims()
+
+def unitsin(dimension: str, ascls: bool = False) -> List[Union[str, Type]]:
+    """
+    Retrieves units associated with a specific dimension.
+    
+    Args:
+        dimension: The dimension name (e.g., 'mass').
+        ascls: If True, returns the actual Class objects instead of strings.
+        
+    
+    >>> chisa.unitsin('mass') -> ['g', 'kg', 'lb', ...]
+    >>> chisa.unitsin('mass', ascls=True) -> [<class 'Gram'>, <class 'Kilogram'>, ...]
+    """
+    return default_ureg.unitsin(dimension, ascls=ascls)
+
+def dimof(obj: Any) -> str:
+    """
+    Resolves the physical dimension of a string alias, Unit Class, or Unit Instance.
+    
+    >>> chisa.dimof('kg') -> 'mass'
+    >>> chisa.dimof(Celsius) -> 'temperature'
+    >>> chisa.dimof(Meter(10)) -> 'length'
+    """
+    return default_ureg.dimof(obj)

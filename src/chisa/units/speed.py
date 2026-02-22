@@ -7,13 +7,12 @@ cosmic constants (Speed of Light), and dynamically scaled environmental
 speeds (Mach, dependent on temperature).
 The absolute base unit for this dimension is Meters per Second (m/s).
 """
-
-import math
-from typing import Dict, Any
 from ..core.base import BaseUnit
-from ..core.axioms import Axiom
+from ..core import axioms as axiom
+from ..core import constants as const
+from ..core import vmath
+from .temperature import Kelvin
 
-axiom = Axiom()
 
 @axiom.bound(min_val=0, msg="Speed (scalar magnitude) cannot be negative!")
 class SpeedUnit(BaseUnit):
@@ -23,38 +22,10 @@ class SpeedUnit(BaseUnit):
     """
     dimension = "speed"
 
-def _mach_scale_context(ctx: Dict[str, Any]) -> float:
-    """
-    Dynamically calculates the speed of sound based on environmental temperature.
-    Serves as the contextual scaling factor for the Mach unit.
-
-    Args:
-        ctx (Dict[str, Any]): The context dictionary containing temperature properties.
-
-    Returns:
-        float: The speed of sound in meters per second (m/s).
-    """
-    if 'speed_of_sound_m_s' in ctx:
-        return float(ctx['speed_of_sound_m_s'])
-
-    temp_c = 15.0  # Standard sea-level temperature
-
-    if 'temp_c' in ctx:
-        temp_c = float(ctx['temp_c'])
-    elif 'temp_k' in ctx:
-        temp_c = float(ctx['temp_k']) - 273.15
-    elif 'temp_f' in ctx:
-        temp_c = (float(ctx['temp_f']) - 32.0) * (5.0 / 9.0)
-    elif 'temp_r' in ctx:
-        temp_c = (float(ctx['temp_r']) - 491.67) * (5.0 / 9.0)
-    elif 'temp_re' in ctx:
-        temp_c = float(ctx['temp_re']) * (5.0 / 4.0)
-
-    # Absolute zero boundary enforcement for the calculation
-    if temp_c < -273.15:
-        temp_c = -273.15 
-
-    return 331.3 * math.sqrt(1 + (temp_c / 273.15))
+@axiom.prepare(temperature=Kelvin)
+def _calc_mach_scale(temperature = const.STANDARD_ATMOSPHERE_TEMP_K) -> float:
+    safe_temp = vmath.maximum(temperature, const.ABSOLUTE_ZERO_K)
+    return const.SPEED_OF_SOUND_0C * vmath.sqrt(safe_temp / const.ZERO_CELSIUS_K)
 
 
 # =========================================================================
@@ -102,27 +73,23 @@ class CentimeterPerMinute(SpeedUnit):
 class MilePerHour(SpeedUnit):
     symbol = "mi/h"
     aliases = ["mph", "mile per hour", "miles per hour"]
-    base_multiplier = 0.44704
+    # 1 mil/jam = (1 mil dalam meter) dibagi 3600 detik
+    base_multiplier = const.MILE_TO_METER / 3600.0
 
 class FootPerSecond(SpeedUnit):
     symbol = "ft/s"
     aliases = ["fps", "foot per second", "feet per second"]
-    base_multiplier = 0.3048
+    base_multiplier = const.FOOT_TO_METER
 
 class FootPerMinute(SpeedUnit):
     symbol = "ft/min"
     aliases = ["fpm", "foot per minute", "feet per minute"]
-    base_multiplier = 0.3048 / 60.0
+    base_multiplier = const.FOOT_TO_METER / 60.0
 
 class InchPerSecond(SpeedUnit):
     symbol = "in/s"
     aliases = ["inch per second", "inches per second"]
-    base_multiplier = 0.0254
-
-class InchPerMinute(SpeedUnit):
-    symbol = "in/min"
-    aliases = ["inch per minute", "inches per minute"]
-    base_multiplier = 0.0254 / 60.0
+    base_multiplier = const.INCH_TO_METER
 
 
 # =========================================================================
@@ -131,9 +98,9 @@ class InchPerMinute(SpeedUnit):
 class Knot(SpeedUnit):
     symbol = "kt"
     aliases = ["knot", "knots", "kn"]
-    base_multiplier = 1852.0 / 3600.0
+    base_multiplier = const.NAUTICAL_MILE_TO_METER / 3600.0
 
-@axiom.scale(formula=_mach_scale_context)
+@axiom.scale(formula=_calc_mach_scale)
 class Mach(SpeedUnit):
     symbol = "mach"
     aliases = ["ma"]
@@ -146,4 +113,4 @@ class Mach(SpeedUnit):
 class SpeedOfLight(SpeedUnit):
     symbol = "c"
     aliases = ["speed of light", "lightspeed"]
-    base_multiplier = 299792458.0
+    base_multiplier = const.SPEED_OF_LIGHT

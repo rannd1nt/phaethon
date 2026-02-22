@@ -8,14 +8,13 @@ The absolute base unit for this dimension is the Watt (W).
 """
 
 from ..core.base import BaseUnit
-from ..core.axioms import Axiom
+from ..core import axioms as axiom
 
 from .energy import Joule, FootPound, BTU
 from .time import Second, Hour
 from .force import KilogramForce
 from .length import Meter
 
-axiom = Axiom()
 
 @axiom.bound(min_val=0, msg="Power magnitude cannot be negative.")
 class PowerUnit(BaseUnit):

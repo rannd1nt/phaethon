@@ -11,9 +11,8 @@ The absolute base unit for this dimension is the Second (s).
 from decimal import Decimal
 from typing import Tuple, Optional, Union
 from ..core.base import BaseUnit
-from ..core.axioms import Axiom
-
-axiom = Axiom()
+from ..core import axioms as axiom
+from ..core import constants as const
 
 @axiom.bound(min_val=0, msg="Elapsed time duration cannot be negative.")
 class TimeUnit(BaseUnit):
@@ -26,15 +25,15 @@ class TimeUnit(BaseUnit):
 
     # Static hierarchy defining unit magnitudes in seconds for the flex formatter
     _FLEX_HIERARCHY = [
-        ("millennium", Decimal("31557600000")),
-        ("century", Decimal("3155760000")),
-        ("decade", Decimal("315576000")),
-        ("year", Decimal("31557600")),
-        ("month", Decimal("2629800")),
-        ("week", Decimal("604800")),
-        ("day", Decimal("86400")),
-        ("hour", Decimal("3600")),
-        ("minute", Decimal("60")),
+        ("millennium", Decimal(str(const.JULIAN_YEAR_TO_SECOND * 1000))),
+        ("century", Decimal(str(const.JULIAN_YEAR_TO_SECOND * 100))),
+        ("decade", Decimal(str(const.JULIAN_YEAR_TO_SECOND * 10))),
+        ("year", Decimal(str(const.JULIAN_YEAR_TO_SECOND))),
+        ("month", Decimal(str(const.JULIAN_MONTH_TO_SECOND))),
+        ("week", Decimal(str(const.WEEK_TO_SECOND))),
+        ("day", Decimal(str(const.DAY_TO_SECOND))),
+        ("hour", Decimal(str(const.HOUR_TO_SECOND))),
+        ("minute", Decimal(str(const.MINUTE_TO_SECOND))),
         ("second", Decimal("1"))
     ]
 
@@ -43,8 +42,8 @@ class TimeUnit(BaseUnit):
         Deconstructs the total time duration into a natural language format.
         
         Args:
-            range (Tuple[Optional[str], Optional[str]]): The upper and lower bounds for the output units.
-            delim (Union[bool, str]): Whether to include thousands separators in the numbers.
+            range: The upper and lower bounds for the output units.
+            delim: Whether to include thousands separators in the numbers.
 
         Returns:
             str: The human-readable formatted time string.
@@ -110,32 +109,32 @@ class Nanosecond(TimeUnit):
 class Minute(TimeUnit):
     symbol = "min"
     aliases = ["minute", "minutes"]
-    base_multiplier = 60.0
+    base_multiplier = const.MINUTE_TO_SECOND
 
 class Hour(TimeUnit):
     symbol = "h"
     aliases = ["hr", "hour", "hours"]
-    base_multiplier = 3600.0
+    base_multiplier = const.HOUR_TO_SECOND
 
 class Day(TimeUnit):
     symbol = "d"
     aliases = ["day", "days"]
-    base_multiplier = 86400.0
+    base_multiplier = const.DAY_TO_SECOND
 
 class Week(TimeUnit):
     symbol = "w"
     aliases = ["wk", "week", "weeks"]
-    base_multiplier = 604800.0
+    base_multiplier = const.WEEK_TO_SECOND
 
 class Month(TimeUnit):
     symbol = "mo"
     aliases = ["m", "month", "months"]
-    base_multiplier = 2629800.0
+    base_multiplier = const.JULIAN_MONTH_TO_SECOND
 
 class Year(TimeUnit):
     symbol = "y"
     aliases = ["yr", "year", "years"]
-    base_multiplier = 31557600.0
+    base_multiplier = const.JULIAN_YEAR_TO_SECOND
 
 
 # =========================================================================
@@ -144,22 +143,22 @@ class Year(TimeUnit):
 class Bimonth(TimeUnit):
     symbol = "bimonth"
     aliases = ["bimonthly"]
-    base_multiplier = 5259600.0
+    base_multiplier = const.JULIAN_MONTH_TO_SECOND * 2.0
 
 class Quarter(TimeUnit):
     symbol = "quarter"
     aliases = ["quarters", "triwulan", "trimester", "trimesters"]
-    base_multiplier = 7889400.0
+    base_multiplier = const.JULIAN_MONTH_TO_SECOND * 3.0
 
 class Quadmester(TimeUnit):
     symbol = "quadmester"
     aliases = ["quadmesters"]
-    base_multiplier = 10505700.0
+    base_multiplier = const.JULIAN_MONTH_TO_SECOND * 4.0
 
 class Semester(TimeUnit):
     symbol = "semester"
     aliases = ["semesters"]
-    base_multiplier = 15778800.0
+    base_multiplier = const.JULIAN_MONTH_TO_SECOND * 6.0
 
 
 # =========================================================================
@@ -168,34 +167,34 @@ class Semester(TimeUnit):
 class Lustrum(TimeUnit):
     symbol = "lustrum"
     aliases = ["lustra"]
-    base_multiplier = 157788000.0
+    base_multiplier = const.JULIAN_YEAR_TO_SECOND * 5.0
 
 class Windu(TimeUnit):
     symbol = "windu"
     aliases = ["windus"]
-    base_multiplier = 252460800.0
+    base_multiplier = const.JULIAN_YEAR_TO_SECOND * 8.0
 
 class Decade(TimeUnit):
     symbol = "decade"
     aliases = ["decades", "dasawarsa"]
-    base_multiplier = 315576000.0
+    base_multiplier = const.JULIAN_YEAR_TO_SECOND * 10.0
 
 class Score(TimeUnit):
     symbol = "score"
     aliases = ["scores"]
-    base_multiplier = 631152000.0
+    base_multiplier = const.JULIAN_YEAR_TO_SECOND * 20.0
 
 class Generation(TimeUnit):
     symbol = "generation"
     aliases = ["generations"]
-    base_multiplier = 946728000.0
+    base_multiplier = const.JULIAN_YEAR_TO_SECOND * 30.0
 
 class Century(TimeUnit):
     symbol = "century"
     aliases = ["centuries"]
-    base_multiplier = 3155760000.0
+    base_multiplier = const.JULIAN_YEAR_TO_SECOND * 100.0
 
 class Millennium(TimeUnit):
     symbol = "millennium"
     aliases = ["millennia", "milenium", "millenium"]
-    base_multiplier = 31557600000.0
+    base_multiplier = const.JULIAN_YEAR_TO_SECOND * 1000.0

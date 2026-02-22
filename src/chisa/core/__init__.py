@@ -1,5 +1,8 @@
 """
 Core Engine modules for Chisa.
-Contains the Dimensional Algebra Engine, Unit Registry, Base Unit architecture,
-and Axiom physics modifiers.
+
+Contains the logic-driven Dimensional Algebra Engine, the global Unit Registry, 
+the Base Unit architecture, and the Axiom physics modeling modifiers. This package 
+forms the low-level computational backbone for strict dimensional validation, 
+scalar mathematics, and high-performance vectorized NumPy integration.
 """

@@ -8,10 +8,10 @@ The absolute base unit for this dimension is the Square Meter (m²).
 """
 
 from ..core.base import BaseUnit
-from ..core.axioms import Axiom
+from ..core import axioms as axiom
+from ..core import constants as const
 from .length import Meter, Centimeter, Millimeter, Kilometer, Inch, Foot, Yard, Mile
 
-axiom = Axiom()
 
 @axiom.bound(min_val=0, msg="Area cannot be negative!")
 class AreaUnit(BaseUnit):
@@ -69,14 +69,14 @@ class SquareMile(AreaUnit):
 class Hectare(AreaUnit):
     symbol = "ha"
     aliases = ["hectare", "hectares"]
-    base_multiplier = 10000.0
+    base_multiplier = const.HECTARE_TO_SQ_METER
 
 class Are(AreaUnit):
     symbol = "a"
     aliases = ["are", "ares"]
-    base_multiplier = 100.0
+    base_multiplier = const.ARE_TO_SQ_METER
 
 class Acre(AreaUnit):
     symbol = "ac"
     aliases = ["acre", "acres"]
-    base_multiplier = 4046.8564224
+    base_multiplier = const.ACRE_TO_SQ_METER
