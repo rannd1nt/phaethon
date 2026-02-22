@@ -249,9 +249,9 @@ print(total_energy_array.mag)
 ## Built-in Physics Utilities
 To support the Axiom Engine and ensure safe cross-type mathematics (Scalars vs. NumPy Arrays), Chisa provides built-in utility modules optimized for scientific computing:
 
-- `CtxProxy` **(aliased as `C`)**: A declarative Context Variable proxy. It allows you to build lazy-evaluated mathematical formulas directly inside decorators. For example, `C('power_noise') * 2` will wait until runtime to extract the `'power_noise'` value from the unit's context dictionary and multiply it.<br><br>
+- `CtxProxy` **(aliased as `C`)**: A declarative Context Variable proxy. It allows you to build lazy-evaluated mathematical formulas directly inside decorators. For example, `C('power_noise') * 2` will wait until runtime to extract the `'power_noise'` value from the unit's context dictionary and multiply it.
 
-- `chisa.vmath`: A universal math wrapper. Python's `math.sqrt` crashes on arrays, and `numpy.sqrt` can be overkill for pure scalars. `vmath` automatically detects the input type and routes the calculation to the safest, fastest engine (handling `maximum`, `power`, `cos`, `sqrt`, etc.) without you having to write a single if statement.<br><br>
+- `chisa.vmath`: A universal math wrapper. Python's `math.sqrt` crashes on arrays, and `numpy.sqrt` can be overkill for pure scalars. `vmath` automatically detects the input type and routes the calculation to the safest, fastest engine (handling `maximum`, `power`, `cos`, `sqrt`, etc.) without you having to write a single if statement.
 
 - `chisa.const`: A comprehensive, high-precision constants library (`SPEED_OF_LIGHT`, `GRAVITATIONAL_CONSTANT`, `STEFAN_BOLTZMANN`, `ABSOLUTE_ZERO_K`, `INF`, etc.). It eliminates "magic numbers" in your physics formulas.
 
