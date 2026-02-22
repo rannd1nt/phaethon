@@ -45,7 +45,7 @@ You construct mathematical constraints (e.g., Temperature cannot drop below Abso
 At its absolute core, Chisa normalizes every unit into a universal "Base Value" using a highly optimized linear transformation. When you instantiate a unit, the engine calculates its true physical magnitude using this equation:
 
 $$
-y = (x + c) \times m
+y = (x + c) \cdot m
 $$
 
 Where:
@@ -140,8 +140,8 @@ Let's model how time slows down near a massive object using the Schwarzschild eq
 $$
 \text{Scale Factor} =
 \sqrt{
-\max\!\left(
-1 - \frac{2 G M}{r c^2},\, 0
+\max\left(
+1 - \frac{2 G M}{r c^2}, 0
 \right)
 }
 $$
@@ -310,3 +310,29 @@ pip install chisa
 - **Submodule Separation:** Refactoring the `@axiom` namespace into domain-specific submodules (e.g., `@axiom.unit...` for class definitions and `@axiom.formula...` for function injection) to enforce stricter separation of concerns.
 
 ---
+---
+
+##  Contributing
+
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make to Chisa are **greatly appreciated**.
+
+If you have a suggestion that would make this framework better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement". 
+Don't forget to give the project a star!
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'feat: Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## License
+
+Distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+<p align="center">
+  <i>"Measuring the universe, one dimension at a time."</i>
+</p>
