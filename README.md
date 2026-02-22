@@ -310,7 +310,6 @@ pip install chisa
 - **Submodule Separation:** Refactoring the `@axiom` namespace into domain-specific submodules (e.g., `@axiom.unit...` for class definitions and `@axiom.formula...` for function injection) to enforce stricter separation of concerns.
 
 ---
----
 
 ##  Contributing
 
