@@ -1,3 +1,9 @@
+> ⚠️ **ARCHIVAL NOTICE**
+> 
+> This branch contains the legacy source code for **Unitflex**, the early predecessor to the Chisa framework. This project is no longer actively maintained and is preserved here purely for historical and archival purposes.
+> 
+> 👉 **Looking for the active project?** Please visit the [`main branch`](https://github.com/rannd1nt/chisa/tree/main) to explore **Chisa**, the completely re-architected, NumPy-vectorized dimensional algebra and physics modeling framework.
+
 # What is Unitflex? 📦
 
 **Unitflex** is a Python library for converting values between various measurement units such as **length**, **mass**, **volume**, **data**, **pressure** and more.  
