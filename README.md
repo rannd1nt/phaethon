@@ -12,7 +12,7 @@
 <a href="https://github.com/USERNAME/Chisa/issues">
 <img src="https://img.shields.io/badge/Maintained%3F-Yes-238636?style=flat-square" alt="Maintenance">
 </a>
-<img src="https://img.shields.io/badge/Version-0.1.0-orange?style=flat-square" alt="Version">
+<img src="https://img.shields.io/badge/Version-0.1.1-orange?style=flat-square" alt="Version">
 </p>
 
 </div>
@@ -59,11 +59,13 @@ By exposing decorators rather than raw classes, Chisa allows you to dynamically 
 ---
 
 ## Precision & Type Safety (`.mag` vs `.exact`)
-Chisa dynamically juggles standard `float`, ultra-precise `decimal.Decimal`, and vectorized numpy.ndarray. To prevent cross-type calculation crashes in complex physics formulas, Chisa forces you to be explicit about your extraction strategy:
+By default, Chisa strictly standardizes all scalar calculations to C-level `float64` (native Python `float`). This prevents unexpected `TypeError` crashes when feeding Chisa outputs directly into Machine Learning libraries like SciPy or Scikit-Learn. 
 
-- `unit.mag` (Magnitude - Best for Math & ML): Strips high-precision Decimals down to standard Python `float` (or leaves `ndarray` intact). Use this 95% of the time for safe, cross-dimensional physics calculations (e.g., Area * Length), Matplotlib charting, or machine learning pipelines.
+However, Chisa can dynamically juggle standard `float`, ultra-precise `decimal.Decimal`, and vectorized `numpy.ndarray`. To handle this, Chisa forces explicit extraction strategies:
 
-- `unit.exact` (Absolute Precision - Best for Audits): Returns the raw, unadulterated `decimal.Decimal`. Use this strictly for financial tracking, database storage, or extreme precision logging. Warning: Multiplying a Decimal `.exact` with a standard Python float will intentionally trigger a TypeError to prevent precision drift.
+- `unit.mag` (Magnitude - Best for Math & ML): Safely extracts the native Python `float` (or leaves `ndarray` intact). Use this 95% of the time for cross-dimensional physics calculations, Matplotlib charting, or machine learning pipelines.
+
+- `unit.exact` (Absolute Precision - Best for Audits): Returns the raw, unadulterated `decimal.Decimal`. Use this strictly for financial tracking or extreme precision logging. **Note:** To use this, you must explicitly initialize your unit with a Decimal object (e.g., `Meter(Decimal('10.5'))`) or set `mode='decimal'` in the Fluent API.
 
 ---
 
@@ -104,6 +106,7 @@ print(repr(res_array))
 ### 3. Explicit OOP & Dimensional Mathematics
 Treat units as first-class physical entities. Chisa automatically normalizes bases and prevents cross-dimensional logic errors.
 ```python
+from decimal import Decimal
 from chisa.units.length import Meter, Centimeter, Kilometer
 from chisa.units.mass import Kilogram
 from chisa import DimensionMismatchError
@@ -113,13 +116,14 @@ total_length = Meter(10.5) + Centimeter(500)
 print(total_length) # <Meter: 15.5 m>
 
 # 2. Precision Extraction (Method Chaining)
-distance = Kilometer(2.5)
+# Explicitly initialize with Decimal to opt into high-precision audit mode
+distance = Kilometer(Decimal('2.5'))
 
-# .mag returns a standard Python float (Safe for external math & NumPy)
+# .mag safely downcasts to a standard Python float (Safe for external math & NumPy)
 math_safe_val = distance.to(Meter).mag
 print(repr(math_safe_val)) # 2500.0
 
-# .exact returns a decimal.Decimal (For strict audits & extreme precision)
+# .exact preserves the high-precision decimal.Decimal (For strict audits)
 audit_safe_val = distance.to(Meter).exact
 print(repr(audit_safe_val)) # Decimal('2500.0')
 
@@ -285,6 +289,44 @@ mass_classes = chisa.unitsin('mass', ascls=True)
 print(chisa.baseof('temperature')) 
 # <class 'chisa.units.temperature.Celsius'>
 ```
+
+---
+
+## Examples & Tutorials
+
+To help you integrate Chisa into your existing workflows, we provide a comprehensive suite of examples in the `examples/` directory.
+
+### Interactive Crash Course (Google Colab)
+The fastest way to learn Chisa is through our interactive notebooks. No local installation required!
+
+| Tutorial | Description | Link |
+| :--- | :--- | :--- |
+| **01. Fundamentals** | Core concepts, Axiom Engine, and Type Safety. | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/rannd1nt/chisa/blob/main/examples/T01_Chisa_Fundamentals.ipynb) |
+| **02. Workflow Demo** | Real-world engineering with Pandas & Matplotlib. | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/rannd1nt/chisa/blob/main/examples/T02_Chisa_RealWorld_Workflow.ipynb) |
+
+### Python Scripts Reference
+For detailed, standalone script implementations:
+
+* **Fundamentals & Type Safety**
+    * `01_types_and_basics.py`: Floats, Decimals, and NumPy `dtype` preservation.
+    * `02_iot_sensor_normalization.py`: Vectorizing 1 million data points instantly.
+    * `03_oop_math_and_guardrails.py`: Dimensional algebra and cross-unit math.
+* **The Axiom Engine (Physics Modeling)**
+    * `04_strict_physics_guardrails.py`: Protecting functions with `@axiom.require`.
+    * `05_contextual_physics.py`: Injecting dynamic environments (e.g., Atmospheric Pressure).
+    * `08_custom_domain_creation.py`: Building entirely new dimensions (Density) from scratch.
+    * `11_asteroid_impact_stacking.py`: Stacking multiple axioms to synthesize complex physics.
+* **Scientific Utility & Error Handling**
+    * `06_temporal_flexibility.py`: Natural language breakdown using `.flex()`.
+    * `07_registry_introspection.py`: Interrogating the engine (`dimof`, `unitsin`).
+    * `09_scientific_computing.py`: High-precision constants (`const`) and universal math (`vmath`).
+    * `10_quantum_mechanics_prepare.py`: Auto-extraction with `@axiom.prepare`.
+* **Real-World Ecosystem Integration**
+    * `12_pandas_matplotlib_integration.py`: Normalizing DataFrame columns and plotting.
+    * `13_scipy_optimization.py`: Safely feeding strict physical bounds into SciPy optimizers.
+    * `14_sympy_algebraic_physics.py`: Solving symbolic algebra and evaluating with Chisa constants.
+    * `15_scikit_learn_pipeline.py`: Building a custom ML Transformer to autonomously normalize units.
+
 
 ---
 
