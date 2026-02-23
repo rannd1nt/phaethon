@@ -42,11 +42,10 @@ class _ConversionBuilder:
             self._internal_val = value if isinstance(value, (np.ndarray, np.generic)) else np.array(value, dtype=float)
             self.is_array = True
         else:
-            # Scalar Decimal Enforcement
             self.is_array = False
             try:
-                self._internal_val = Decimal(str(value)) if isinstance(value, (int, float, Decimal, str)) else Decimal(value)
-            except (InvalidOperation, TypeError, ValueError):
+                self._internal_val = value if isinstance(value, Decimal) else float(value)
+            except (TypeError, ValueError):
                 raise TypeError(f"Invalid input: '{value}' cannot be converted to a numeric type.")
                 
         self.source_unit = source_unit
@@ -54,7 +53,7 @@ class _ConversionBuilder:
         self._target_unit: Optional[Union[str, Any]] = None 
         
         self._options = {
-            "mode": "decimal",
+            "mode": "float64",
             "prec": 9,
             "roundin": "half_even",
             "output": "raw", 
@@ -80,7 +79,7 @@ class _ConversionBuilder:
     def use(
         self,
         mode: Literal["decimal", "float64"] = None,
-        format: Literal["raw", "exact", "str", "tag", "verbose"] = None,
+        format: Literal["raw", "str", "tag", "verbose"] = None,
         roundin: Literal["half_even", "half_up"] = None,
         prec: Optional[int] = None,
         sigfigs: Optional[int] = None,
@@ -93,7 +92,7 @@ class _ConversionBuilder:
 
         Args:
             mode: The underlying math engine to use ("decimal" or "float64").
-            format: The cosmetic structure of the output ("raw", "tag", or "verbose").
+            format: The structural output ("raw" for numbers, "str" for formatted number string, "tag" for value+unit, "verbose" for equation).
             roundin: The rounding strategy to apply ("half_even" or "half_up").
             prec: The number of decimal places to calculate or display.
             sigfigs: The number of significant figures to enforce on the final value.
@@ -247,7 +246,8 @@ class _ConversionBuilder:
             getcontext().prec = prec * 2
             getcontext().rounding = ROUND_HALF_EVEN if roundin == "half_even" else ROUND_HALF_UP
 
-            source_obj = SourceClass(self._internal_val, context=self._context)
+            safe_dec_val = Decimal(str(self._internal_val)) if not isinstance(self._internal_val, Decimal) else self._internal_val
+            source_obj = SourceClass(safe_dec_val, context=self._context)
             target_obj = source_obj.to(TargetClass)
             
             converted_value = target_obj.exact
@@ -283,9 +283,6 @@ class _ConversionBuilder:
         else:
             raise ConversionError(f"Computation mode '{mode}' is not recognized. Use 'decimal' or 'float64'.")
 
-        if isinstance(final_value, (float, Decimal)) and final_value == int(final_value):
-            final_value = int(final_value)
-
         sigfigs = self._options["sigfigs"]
         if sigfigs:
             try:
@@ -318,13 +315,14 @@ class _ConversionBuilder:
         sigfigs = self._options["sigfigs"]
         prec = self._options["prec"]
 
+        # =========================================================
+        # PATH A: NumPy Array Formatting
+        # =========================================================
         if HAS_NUMPY and isinstance(final_value, (np.ndarray, np.generic)):
             if output_fmt == "exact":
                 return final_value
         
             if output_fmt == "raw":
-                if isinstance(final_value, Decimal):
-                    return float(final_value)
                 return final_value
 
             def format_elem(x):
@@ -334,9 +332,9 @@ class _ConversionBuilder:
                 
                 s = f"{float(x):.{prec}f}"
                 if '.' in s:
-                    s = s.rstrip('0').rstrip('.')
-                    if s.endswith('-'): s = s + "0"
-                    if not s: s = "0"
+                    s = s.rstrip('0')
+                    if s.endswith('.'):
+                        s += '0'
                 
                 if delim:
                     separator = "," if delim is True or str(delim).lower() == "default" else str(delim)
@@ -367,6 +365,9 @@ class _ConversionBuilder:
             
             return val_str
 
+        # =========================================================
+        # PATH B: Scalar Formatting (Float / Decimal)
+        # =========================================================
         if output_fmt == "raw":
             return final_value
 
@@ -380,11 +381,10 @@ class _ConversionBuilder:
             else:
                 val_str = format(final_value, 'f')
 
-        if sigfigs is not None and not scinote:
-            if '.' in val_str:
-                val_str = val_str.rstrip('0').rstrip('.')
-        elif not scinote and '.' in val_str:
-            val_str = val_str.rstrip('0').rstrip('.')
+        if not scinote and '.' in val_str:
+            val_str = val_str.rstrip('0')
+            if val_str.endswith('.'):
+                val_str += '0'
 
         if delim:
             separator = "," if delim is True or str(delim).lower() == "default" else str(delim)
@@ -400,7 +400,10 @@ class _ConversionBuilder:
                 raw_parts[0] = f"{int(raw_parts[0]):,}".replace(",", separator)
                 raw_str_formatted = '.'.join(raw_parts)
             else:
-                raw_str_formatted = f"{int(self.raw_value):,}".replace(",", separator)
+                try:
+                    raw_str_formatted = f"{int(self.raw_value):,}".replace(",", separator)
+                except ValueError:
+                    raw_str_formatted = str(self.raw_value)
         else:
             raw_str_formatted = str(self.raw_value)
 

@@ -8,7 +8,6 @@ While Kelvin is the absolute thermodynamic baseline, Celsius operates
 as the practical 1:1 scaling reference.
 """
 
-from decimal import Decimal
 from ..core.base import BaseUnit
 from ..core import axioms as axiom
 from ..core import constants as const
@@ -42,7 +41,7 @@ class Fahrenheit(TemperatureUnit):
     aliases = ["fahrenheit", "°f"]
     # Offset: Minus freezing point
     base_offset = -const.FAHRENHEIT_OFFSET
-    base_multiplier = Decimal('5') / Decimal('9')
+    base_multiplier = 5.0 / 9.0
 
 
 # =========================================================================
@@ -64,7 +63,7 @@ class Rankine(TemperatureUnit):
     symbol = "r"
     aliases = ["rankine", "°r"]
     base_offset = -const.RANKINE_OFFSET
-    base_multiplier = Decimal('5') / Decimal('9')
+    base_multiplier = 5.0 / 9.0
 
 
 # =========================================================================

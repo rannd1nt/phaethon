@@ -48,8 +48,10 @@ class BaseUnit:
             self._value = value
         elif HAS_NUMPY and isinstance(value, (list, tuple)):
             self._value = np.array(value, dtype=float)
-        elif isinstance(value, (int, float, str, Decimal)):
-            self._value = Decimal(str(value))
+        elif isinstance(value, Decimal):
+            self._value = value
+        elif isinstance(value, (int, float, str)):
+            self._value = float(value)
         else:
             raise TypeError(f"Value must be numeric or array, got {type(value).__name__}")
             
@@ -63,56 +65,58 @@ class BaseUnit:
         """
         Returns the exact, unadulterated internal representation of the unit.
         
-        - For scalars: Returns a `decimal.Decimal` to preserve absolute mathematical 
-          precision (avoiding floating-point drift).
-        - For vectors: Returns the original `numpy.ndarray`.
+        - If the engine/user strictly defined a `decimal.Decimal`, it returns the Decimal.
+        - If it's a standard scalar, it returns the pure Python `float`.
+        - If it's a vector, it returns the original `numpy.ndarray`.
         
-        WARNING: Do not mix `.exact` scalar outputs with external NumPy arrays 
-        in manual calculations, as Python forbids multiplying Decimals with floats/arrays. 
-        Use `.magnitude` instead for general cross-dimensional math.
+        Use `.exact` strictly when you need audit-level precision (e.g., logging 
+        or database insertion) and are prepared to handle Python's strict type rules 
+        (e.g., preventing Decimal and float multiplication).
         """
         return self._value
 
     @property
     def mag(self) -> Any:
         """
-        Returns the numeric magnitude as a standard, math-safe Python primitive.
+        Returns the numeric magnitude as a guaranteed math-safe Python primitive.
         
-        - For scalars: Automatically casts internal Decimals down to standard `float` or `int`.
+        - For scalars: Always returns a standard `float`. If the internal value is 
+          a `Decimal`, it safely downcasts it to prevent cross-type TypeErrors 
+          when mixing with external Python calculations.
         - For vectors: Returns the `numpy.ndarray` intact.
         
-        Always use `.magnitude` when extracting values to perform 
-        external physics calculations, plotting (Matplotlib), or machine learning.
+        Always use `.mag` when extracting values to perform external physics 
+        formulas, plotting (Matplotlib), or machine learning pipelines.
         """
         if HAS_NUMPY and isinstance(self._value, (np.ndarray, np.generic)):
             return self._value
             
-        if isinstance(self._value, Decimal) and self._value == int(self._value):
-            return int(self._value)
+        if isinstance(self._value, Decimal):
+            return float(self._value)
             
-        return float(self._value)
+        return self._value
 
     # =========================================================================
     # INTERNAL CORE LOGIC
     # =========================================================================
-    def _to_base_value(self) -> Union[Decimal, Any]:
+    def _to_base_value(self) -> Union[float, Decimal, Any]:
         """Converts the current magnitude to the dimension's absolute base point."""
-        if HAS_NUMPY and isinstance(self._value, (np.ndarray, np.generic)):
-            val_with_offset = self._value + float(self.base_offset)
-            return val_with_offset * float(self.base_multiplier)
-        
-        val_with_offset = self._value + Decimal(str(self.base_offset))
-        return val_with_offset * Decimal(str(self.base_multiplier))
+        if isinstance(self._value, Decimal):
+            val_with_offset = self._value + Decimal(str(self.base_offset))
+            return val_with_offset * Decimal(str(self.base_multiplier))
+            
+        val_with_offset = self._value + float(self.base_offset)
+        return val_with_offset * float(self.base_multiplier)
 
     @classmethod
-    def _from_base_value(cls, base_val: Union[Decimal, Any], context: Dict[str, Any]) -> Union[Decimal, Any]:
+    def _from_base_value(cls, base_val: Union[float, Decimal, Any], context: Dict[str, Any]) -> Union[float, Decimal, Any]:
         """Converts a magnitude from the dimension's absolute base point to this specific unit."""
-        if HAS_NUMPY and isinstance(base_val, (np.ndarray, np.generic, float)):
-            val = base_val / float(cls.base_multiplier)
-            return val - float(cls.base_offset)
+        if isinstance(base_val, Decimal):
+            val = base_val / Decimal(str(cls.base_multiplier))
+            return val - Decimal(str(cls.base_offset))
             
-        val = base_val / Decimal(str(cls.base_multiplier))
-        return val - Decimal(str(cls.base_offset))
+        val = base_val / float(cls.base_multiplier)
+        return val - float(cls.base_offset)
 
     # Whitelisted NumPy Operations
     _ALLOWED_UFUNCS = {
@@ -303,7 +307,9 @@ class BaseUnit:
                 val_str = format(val, 'f')
 
         if not scinote and '.' in val_str:
-            val_str = val_str.rstrip('0').rstrip('.')
+            val_str = val_str.rstrip('0')
+            if val_str.endswith('.'):
+                val_str += '0'
 
         if delim:
             separator = "," if delim is True or str(delim).lower() == "default" else str(delim)

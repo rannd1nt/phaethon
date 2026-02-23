@@ -88,7 +88,7 @@ _bootstrap_units()
 del _bootstrap_units
 
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __all__ = [
     "convert",
     "axiom",

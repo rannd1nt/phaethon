@@ -48,6 +48,8 @@ class TimeUnit(BaseUnit):
         Returns:
             str: The human-readable formatted time string.
         """
+        import numpy as np
+
         lower_bound, upper_bound = range
         valid_units = [u[0] for u in self._FLEX_HIERARCHY]
 
@@ -59,8 +61,12 @@ class TimeUnit(BaseUnit):
 
         allowed_hierarchy = self._FLEX_HIERARCHY[start_index:end_index + 1]
         
-        # Retrieve the absolute base value in seconds
-        remaining = self._to_base_value()
+        raw_remaining = self._to_base_value()
+
+        if isinstance(raw_remaining, np.ndarray):
+            raise TypeError("The .flex() method is intended for scalars and does not support NumPy arrays.")
+
+        remaining = Decimal(str(raw_remaining))
         result = []
 
         for unit_name, unit_seconds in allowed_hierarchy:
