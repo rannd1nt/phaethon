@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Documentation & Ecosystem
 - **docs(examples):** Added a comprehensive suite of 15 standalone Python scripts in the `examples/` directory demonstrating the full capability of the Axiom Engine, Custom Domains, and Error Handling.
-- **docs(notebooks):** Introduced interactive Jupyter Notebooks (`01_Chisa_Fundamentals.ipynb` and `02_Chisa_RealWorld_Workflow.ipynb`) with direct Google Colab integration for seamless onboarding.
+- **docs(notebooks):** Introduced interactive Jupyter Notebooks (`T01_Chisa_Fundamentals.ipynb` and `T02_Chisa_RealWorld_Workflow.ipynb`) with direct Google Colab integration for seamless onboarding.
 - **feat(integration):** Validated and documented zero-bottleneck integration patterns with the broader Data Science ecosystem, including **Pandas**, **Matplotlib**, **SciPy**, **SymPy**, and **Scikit-Learn**.
 
 ---
