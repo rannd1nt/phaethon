@@ -1,298 +1,131 @@
 <div align="center">
 
-<h1>Chisa - Dimensional Algebra & Physics Modelling Framework</h1>
+<h1>Chisa — Unit-Safe Data Pipeline Schema</h1>
 
 <p>
 <img src="https://img.shields.io/badge/MADE_WITH-PYTHON-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python">
 <img src="https://img.shields.io/badge/INTEGRATION-NUMPY-013243?style=for-the-badge&logo=numpy&logoColor=white" alt="NumPy">
+<img src="https://img.shields.io/badge/INTEGRATION-PANDAS-150458?style=for-the-badge&logo=pandas&logoColor=white" alt="Pandas">
 <img src="https://img.shields.io/badge/LICENSE-MIT-red?style=for-the-badge" alt="License">
 </p>
 
 <p>
-<a href="https://github.com/USERNAME/Chisa/issues">
-<img src="https://img.shields.io/badge/Maintained%3F-Yes-238636?style=flat-square" alt="Maintenance">
-</a>
-<img src="https://img.shields.io/badge/Version-0.1.1-orange?style=flat-square" alt="Version">
+<i>Normalize messy heterogeneous units and enforce physical integrity before your data hits ML or production systems.</i>
 </p>
 
 </div>
 
-**Chisa** is a logic-driven dimensional algebra and strict physics modeling framework for Python, powered by seamless NumPy vectorization. It merges the accessibility of a fluent conversion API with the rigorous architectural guardrails of an Object-Oriented physics engine.
+**Chisa** is a declarative schema validation and semantic data transformation tool designed for Data Engineers. It rescues your data pipelines from the nightmare of mixed units, bizarre abbreviations, and impossible physical values.
 
-Going beyond standard unit conversion, Chisa acts as a **Dimensional Integrity Enforcer** for your application. It features the **Axiom Engine** for modeling real-world physical limits, **Bidirectional Type Inferencing** to eliminate unit ambiguity, and native **C-Struct Array bypassing** for high-performance machine learning and data science workloads.
-
----
-
-## Why a "Framework" and not just a Library?
-
-A standard conversion library provides passive tools you call to multiply a number by a constant. **Chisa dictates the architecture of your physical data**. By utilizing Inversion of Control via Python decorators, Chisa provides a foundation where you define the rules of reality.
-
-You construct mathematical constraints (e.g., Temperature cannot drop below Absolute Zero), derive complex units using physical formulas ($W = J/s$), and rely on the engine to autonomously intercept and prevent cross-dimensional logic errors before they corrupt your scientific pipelines.
+While standard schema tools (like Pydantic or Pandera) only validate *data types* (e.g., ensuring a value is a `float`), Chisa validates **physical reality**. If you are ingesting IoT sensor streams, parsing messy logistics CSVs, or processing manufacturing Excel sheets, Chisa ensures your numbers obey the laws of physics before they enter your database.
 
 ---
 
-## Key Features
+## 🚀 The Nightmare vs. The Chisa Way
 
-* **Dual Engine API:** Use the *Fluent API* for quick, readable conversions, or the *Explicit OOP API* for strict mathematical operations.
-* **Native Vectorization:** Drop multi-dimensional `numpy.ndarray` objects directly into Chisa. It bypasses scalar bottlenecks and processes millions of data points instantly.
-* **The Axiom Ruleset:** Python class decorators (`@axiom`) that govern physical boundaries, dynamic context-scaling (e.g., Mach speed relative to temperature), and dimension synthesis.
-* **Smart Inferencing:** Resolves ambiguous abbreviations (e.g., `'m'` for meter vs. minute) dynamically based on the target context.
+Real-world data is rarely clean. A single dataset might contain `"1.5e3 lbs"`, `"  -5 kg  "`, missing values, and typos like `"20 pallets"`. Standard pandas workflows force you to write fragile regex and manual `if-else` blocks. 
 
----
-
-## The Core Architecture (How Chisa Thinks)
-
-At its absolute core, Chisa normalizes every unit into a universal "Base Value" using a highly optimized linear transformation. When you instantiate a unit, the engine calculates its true physical magnitude using this equation:
-
-$$
-y = (x + c) \cdot m
-$$
-
-Where:
-- $x$ — The input magnitude provided by the user.
-- $c$ — base_offset (e.g., -273.15 for converting Celsius to Kelvin). Controlled dynamically by `@axiom.shift`.
-- $m$ — The `base_multiplier` (e.g., 1000 for converting Kilometers to Meters). Controlled dynamically by `@axiom.scale` and `@axiom.derive`.
-- $y$ — The normalized absolute Base Value safely stored in the engine.
-
-By exposing decorators rather than raw classes, Chisa allows you to dynamically inject physical variables into $c$ and $m$ at runtime.
-
----
-
-## Precision & Type Safety (`.mag` vs `.exact`)
-By default, Chisa strictly standardizes all scalar calculations to C-level `float64` (native Python `float`). This prevents unexpected `TypeError` crashes when feeding Chisa outputs directly into Machine Learning libraries like SciPy or Scikit-Learn. 
-
-However, Chisa can dynamically juggle standard `float`, ultra-precise `decimal.Decimal`, and vectorized `numpy.ndarray`. To handle this, Chisa forces explicit extraction strategies:
-
-- `unit.mag` (Magnitude - Best for Math & ML): Safely extracts the native Python `float` (or leaves `ndarray` intact). Use this 95% of the time for cross-dimensional physics calculations, Matplotlib charting, or machine learning pipelines.
-
-- `unit.exact` (Absolute Precision - Best for Audits): Returns the raw, unadulterated `decimal.Decimal`. Use this strictly for financial tracking or extreme precision logging. **Note:** To use this, you must explicitly initialize your unit with a Decimal object (e.g., `Meter(Decimal('10.5'))`) or set `mode='decimal'` in the Fluent API.
-
----
-
-## Quick Start
-
-### 1. The Fluent API
-
-A highly readable, chainable interface for straightforward conversions and aesthetic string formatting.
+**Chisa solves this declaratively.**
 
 ```python
-from chisa import convert
+import pandas as pd
+import chisa as cs
+from chisa import u
+
+class GlobalFreightSchema(cs.Schema):
+    gross_weight: u.Kilogram = cs.Field(
+        source="Weight_Log", 
+        parse_string=True, 
+        on_error='coerce', 
+        round=2,
+        min=0 # Axiom Bound: Cargo mass cannot be negative!
+    )
+    cargo_volume: u.CubicMeter = cs.Field(
+        source="Volume_Log", 
+        parse_string=True, 
+        on_error='coerce'
+    )
+
+df_messy = pd.DataFrame({
+    'Weight_Log': ["1.5e3 lbs", "  -5 kg  ", "20 pallets", "150", "kg"],
+    'Volume_Log': ["100 m^3", "500 cu_ft", "1000", "", "NaN"]
+})
+
+# Execute the pipeline instantly via vectorized masking
+clean_df = GlobalFreightSchema.normalize(df_messy)
+```
+
+**The Output:**
+Chisa cleanly parses `"1.5e3 lbs"` to `680.39 kg`, accurately converts `"cu_ft"` to Cubic Meters, and safely nullifies physical anomalies (like `-5 kg`), bare numbers, and vague inputs (`"20 pallets"`) to `NaN`—all automatically.
+
+---
+
+## 🧠 Smart Error Intelligence
+
+Data pipelines shouldn't just crash; they should tell you *how* to fix them. If you enforce strict data rules (`on_error='raise'`), Chisa provides unparalleled Developer Experience (DX) for debugging massive DataFrames:
+
+```text
+NormalizationError: Normalization failed for field 'gross_weight' at index [2].
+   ► Issue              : Unrecognized unit 'pallets'
+   ► Expected Dimension : mass
+   ► Raw Value Sample   : '20 pallets'
+   ► Suggestion         : Fix the raw data, register the unit, or set Field(on_error='coerce').
+```
+
+---
+
+## ⚡ Performance: The Vectorization Advantage
+
+Standard unit libraries (like Pint) struggle with **heterogeneous strings** (mixed units in the same column), forcing developers to use slow `pandas.apply()` loops to parse row-by-row. Chisa bypasses this entirely using native NumPy vectorization and Pandas Boolean masking.
+
+When stress-tested against 100,000 rows of heterogeneous data (e.g., a mix of `lbs` and `oz` targeting `kg`):
+* *Traditional (Pint + Pandas Apply):* ~14.71 seconds
+* *Chisa (Vectorized Schema):* **~0.046 seconds** *(>316x Faster)*
+
+> *Transparency Note: You can reproduce this 99.6% reduction in latency using the `benchmarks/benchmark_vs_pint.py` script included in this repository.*
+
+---
+
+## 🪝 Pipeline Hooks (Inversion of Control)
+
+Need to filter offline sensors before parsing, or trigger an alarm if a physical threshold is breached? Inject your own domain logic directly into the validation lifecycle.
+
+```python
+class ColdChainPipeline(cs.Schema):
+    temp: u.Celsius = cs.Field(source="raw_temp", parse_string=True)
+
+    @cs.pre_normalize
+    def drop_calibration_pings(cls, raw_df):
+        """Runs BEFORE Chisa parses the strings. Removes sensor test pings."""
+        return raw_df[raw_df['status'] != 'CALIBRATION']
+
+    @cs.post_normalize
+    def enforce_spoilage_check(cls, clean_df):
+        """Runs AFTER all temperatures (e.g., Fahrenheit) are standardized to Celsius."""
+        if clean_df['temp'].max() > -20.0:
+            raise ValueError("CRITICAL: Vaccine shipment spoiled! Temp exceeded -20°C.")
+        return clean_df
+```
+
+---
+## 🏎️ The Fluent API (Quick Inline Conversions)
+
+For simple scripts, logging, or UI components where you don't need full declarative schemas, Chisa provides a highly readable, chainable Fluent API.
+
+```python
+import chisa as cs
 
 # Simple scalar conversion
-speed = convert(120, 'km/h').to('m/s').resolve()
-print(speed) # 33.333333333333336
+speed = cs.convert(120, 'km/h').to('m/s').resolve()
+print(speed) # 33.333333333
 
-# Powerful cosmetic formatting for UI/Logs
-text = convert(1000, 'm').to('cm').use(format='verbose', delim=True).resolve()
+# Powerful cosmetic formatting for logs
+text = cs.convert(1000, 'm').to('cm').use(format='verbose', delim=True).resolve()
 print(text) # "1,000 m = 100,000 cm"
 ```
-
-### 2. High-Performance Vectorization
-Pass NumPy arrays directly. Chisa safely bypasses string logic to maintain pure float64 matrix performance.
-```python
-import numpy as np
-from chisa import convert
-
-# Raw arrays from sensors or datasets
-data = np.array([1, 10, 100, 1000])
-
-# Fully vectorized mathematical conversion
-res_array = convert(data, 'm').to('cm').use(format='raw').resolve()
-
-print(repr(res_array))
-# array([   100.,   1000.,  10000., 100000.])
-```
-
-### 3. Explicit OOP & Dimensional Mathematics
-Treat units as first-class physical entities. Chisa automatically normalizes bases and prevents cross-dimensional logic errors.
-```python
-from decimal import Decimal
-from chisa.units.length import Meter, Centimeter, Kilometer
-from chisa.units.mass import Kilogram
-from chisa import DimensionMismatchError
-
-# 1. Seamless cross-unit math (Auto-normalization)
-total_length = Meter(10.5) + Centimeter(500)
-print(total_length) # <Meter: 15.5 m>
-
-# 2. Precision Extraction (Method Chaining)
-# Explicitly initialize with Decimal to opt into high-precision audit mode
-distance = Kilometer(Decimal('2.5'))
-
-# .mag safely downcasts to a standard Python float (Safe for external math & NumPy)
-math_safe_val = distance.to(Meter).mag
-print(repr(math_safe_val)) # 2500.0
-
-# .exact preserves the high-precision decimal.Decimal (For strict audits)
-audit_safe_val = distance.to(Meter).exact
-print(repr(audit_safe_val)) # Decimal('2500.0')
-
-# 3. Dimensional Guardrails in action
-try:
-    invalid_math = Meter(10) + Kilogram(5)
-except DimensionMismatchError as e:
-    print(e) # "Dimension mismatch (Addition (+)). Expected 'length', but got 'mass'."
-```
-
-
-## Advanced Physics Modeling (Domain-Driven Design)
-Chisa's true power lies in its explicit OOP API. Below is a three-part demonstration of modeling complex astrophysics using dynamic contexts, unit synthesis, and strict type guards.
-
-### Part 1: Contextual Scaling (Gravitational Time Dilation)
-Let's model how time slows down near a massive object using the Schwarzschild equation:
-
-$$
-\text{Scale Factor} =
-\sqrt{
-\max\left(
-1 - \frac{2 G M}{r c^2}, 0
-\right)
-}
-$$
-
-```python
-import numpy as np
-from chisa import axiom, const, vmath
-from chisa.units.time import TimeUnit, Second
-from chisa.units.mass import Kilogram
-from chisa.units.length import Meter
-
-# 1. @prepare forces inputs into required Base Units safely before math execution
-@axiom.prepare(mass=Kilogram, length=Meter)
-def calc_time_dilation(mass=0.0, length=const.INF):
-    r = vmath.maximum(length, 1.0)
-    rs_term = (2 * const.GRAVITATIONAL_CONSTANT * mass) / (r * vmath.power(const.SPEED_OF_LIGHT, 2))
-    safe_term = vmath.maximum(1.0 - rs_term, 0.0)
-    return vmath.sqrt(safe_term)
-
-# 2. @scale binds the physics formula to the unit's base multiplier
-@axiom.scale(formula=calc_time_dilation)
-class DilatedSecond(TimeUnit):
-    symbol = "s_dil"
-    base_multiplier = 1.0
-
-# 3. Execution using Polymorphic Context Arrays
-theoretical_time = DilatedSecond(
-    10.0,
-    context={
-        "mass": Kilogram(1e25),
-        "length": Meter(np.array([10_000_000.0, 5_000_000.0, 1_000_000.0])),
-    },
-)
-
-print(theoretical_time.to(Second).mag)
-# Output: [9.99999999  9.99999999  9.99999993]
-```
-
-### Part 2: Axiom Stacking & Derivation (Stellar Radiation)
-We can derive complex units from simple ones (Watts = Joules / Seconds) and stack Axioms to calculate stellar flux based on the Stefan-Boltzmann law:
-
-$$
-\text{Flux} =
-\left(\sigma T^4\right)\cos(\theta)
-$$
-
-```python
-from chisa import axiom, const, vmath, C
-from chisa.units.power import PowerUnit, Watt
-from chisa.units.energy import Joule
-from chisa.units.temperature import Celsius, Kelvin
-
-@axiom.prepare(temperature=Kelvin)
-def calc_stellar_emission(temperature=0.0, view_angle=0.0):
-    flux = const.STEFAN_BOLTZMANN * vmath.power(temperature, 4)
-    return flux * vmath.cos(view_angle)
-
-# Axiom Stacking: Deriving W = J/s, applying a dynamic shift (noise), and scaling by physics!
-@axiom.derive(mul=[Joule], div=[Second])
-@axiom.shift(formula=C("power_noise", default=0.0))
-@axiom.scale(formula=calc_stellar_emission)
-class StellarRadiance(PowerUnit):
-    symbol = "W_str"
-
-# User passes Celsius; Chisa automatically normalizes it to Kelvin for the formula
-emission = StellarRadiance(
-    2.5,
-    context={
-        "temperature": Celsius(4726.85), # Equals exactly 5000 Kelvin
-        "view_angle": 0.5, 
-        "power_noise": Watt(1500.0), 
-    },
-)
-
-print(emission.to(Watt).mag)
-# Output: 77754964.21099459
-```
-
-### Part 3: Strict Function Guardrails (`@require`)
-Never write manual `if type(x) != y` checks again. Let Chisa enforce dimensional integrity for your own domain logic.
-```python
-@axiom.require(duration=TimeUnit, radiation=PowerUnit)
-def compute_total_energy(duration: TimeUnit, radiation: PowerUnit) -> Joule:
-    # Safely extract .mag (floats/arrays) to perform cross-dimensional physics
-    total_joules_raw = duration.to(Second).mag * radiation.to(Watt).mag
-    return Joule(total_joules_raw)
-
-# Calculate Energy = Array (Time) * Float (Power)
-total_energy_array = compute_total_energy(theoretical_time, emission)
-
-print(total_energy_array.mag)
-# Output: [7.77549642e+08  7.77549641e+08  7.77549636e+08]
-```
-
-### Axiom Decorator Glossary
-- `@axiom.derive(mul=[], div=[])`: Synthesizes the base multiplier of a unit by multiplying/dividing existing Chisa unit classes.
-- `@axiom.bound(min_val, max_val)`: Enforces absolute physical limits (e.g., Temperature cannot fall below 0 Kelvin) during instantiation.
-- `@axiom.scale(formula/ctx)`: Dynamically mutates the unit's multiplier based on runtime environmental context.
-- `@axiom.shift(formula/ctx)`: Dynamically mutates the unit's offset base based on runtime environmental context.
-- `@axiom.require(**kwargs)`: Function decorator that strictly guards argument inputs, ensuring they match specified dimensions or BaseUnit classes.
-- `@axiom.prepare(**kwargs)`: Function decorator that pre-processes incoming Chisa objects, converting them to the required unit and extracting their math-safe .mag value automatically.
-
 ---
 
-## Built-in Physics Utilities
-To support the Axiom Engine and ensure safe cross-type mathematics (Scalars vs. NumPy Arrays), Chisa provides built-in utility modules optimized for scientific computing:
-
-- `CtxProxy` **(aliased as `C`)**: A declarative Context Variable proxy. It allows you to build lazy-evaluated mathematical formulas directly inside decorators. For example, `C('power_noise') * 2` will wait until runtime to extract the `'power_noise'` value from the unit's context dictionary and multiply it.
-
-- `chisa.vmath`: A universal math wrapper. Python's `math.sqrt` crashes on arrays, and `numpy.sqrt` can be overkill for pure scalars. `vmath` automatically detects the input type and routes the calculation to the safest, fastest engine (handling `maximum`, `power`, `cos`, `sqrt`, etc.) without you having to write a single if statement.
-
-- `chisa.const`: A comprehensive, high-precision constants library (`SPEED_OF_LIGHT`, `GRAVITATIONAL_CONSTANT`, `STEFAN_BOLTZMANN`, `ABSOLUTE_ZERO_K`, `INF`, etc.). It eliminates "magic numbers" in your physics formulas.
-
----
-
-## Root Helper Methods (Registry Introspection)
-Chisa exposes lightweight utility functions directly at the root level. These helpers allow you to quickly interrogate the internal `UnitRegistry` without digging through the source code:
-
-```python
-import chisa
-from chisa.units.temperature import Celsius
-
-# 1. dimof(): Identify the dimension of a string alias, Class, or Instance!
-print(chisa.dimof('celsius'))   # 'temperature'
-print(chisa.dimof(Celsius))     # 'temperature'
-print(chisa.dimof(Celsius(10))) # 'temperature'
-
-# 2. dims(): List all physical dimensions currently loaded in the engine
-print(chisa.dims()) 
-# ['area', 'energy', 'length', 'mass', 'power', ...]
-
-# 3. unitsin(): Discover all available unit symbols within a specific dimension
-print(chisa.unitsin('mass')) 
-# ['kg', 'g', 'lb', 'oz', 'MetricTon', ...]
-
-# Pass `ascls=True` to retrieve the actual OOP Class objects for dynamic instantiation
-mass_classes = chisa.unitsin('mass', ascls=True) 
-# [<class 'Gram'>, <class 'Kilogram'>, ...]
-
-# 4. baseof(): Identify the absolute computational baseline class for a dimension
-print(chisa.baseof('temperature')) 
-# <class 'chisa.units.temperature.Celsius'>
-```
-
----
-
-## Examples & Tutorials
+## 📚 Examples & Tutorials
 
 To help you integrate Chisa into your existing workflows, we provide a comprehensive suite of examples in the `examples/` directory.
 
@@ -305,75 +138,75 @@ The fastest way to learn Chisa is through our interactive notebooks. No local in
 | **02. Workflow Demo** | Real-world engineering with Pandas & Matplotlib. | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/rannd1nt/chisa/blob/main/examples/T02_Chisa_RealWorld_Workflow.ipynb) |
 
 ### Python Scripts Reference
-For detailed, standalone script implementations:
+For detailed, standalone script implementations, explore our `examples/` directory:
 
-* **Fundamentals & Type Safety**
-    * `01_types_and_basics.py`: Floats, Decimals, and NumPy `dtype` preservation.
-    * `02_iot_sensor_normalization.py`: Vectorizing 1 million data points instantly.
-    * `03_oop_math_and_guardrails.py`: Dimensional algebra and cross-unit math.
-* **The Axiom Engine (Physics Modeling)**
-    * `04_strict_physics_guardrails.py`: Protecting functions with `@axiom.require`.
-    * `05_contextual_physics.py`: Injecting dynamic environments (e.g., Atmospheric Pressure).
-    * `08_custom_domain_creation.py`: Building entirely new dimensions (Density) from scratch.
-    * `11_asteroid_impact_stacking.py`: Stacking multiple axioms to synthesize complex physics.
-* **Scientific Utility & Error Handling**
-    * `06_temporal_flexibility.py`: Natural language breakdown using `.flex()`.
-    * `07_registry_introspection.py`: Interrogating the engine (`dimof`, `unitsin`).
-    * `09_scientific_computing.py`: High-precision constants (`const`) and universal math (`vmath`).
-    * `10_quantum_mechanics_prepare.py`: Auto-extraction with `@axiom.prepare`.
-* **Real-World Ecosystem Integration**
-    * `12_pandas_matplotlib_integration.py`: Normalizing DataFrame columns and plotting.
-    * `13_scipy_optimization.py`: Safely feeding strict physical bounds into SciPy optimizers.
-    * `14_sympy_algebraic_physics.py`: Solving symbolic algebra and evaluating with Chisa constants.
-    * `15_scikit_learn_pipeline.py`: Building a custom ML Transformer to autonomously normalize units.
+* **Phase 1: Declarative Data Pipelines (Data Ingestion)**
+    * `01_wearable_health_data.py`: Standardizing messy smartwatch exports (BPM, kcal vs cal, body temperature).
+    * `02_food_manufacturing_scale.py`: Safely converting industrial recipe batches across cups, tablespoons, grams, and fluid ounces.
+    * `03_multi_region_tariffs.py`: Parsing mixed currency and weight strings (lbs, oz, kg) in a single pass to calculate global shipping costs.
+    * `04_energy_grid_audits.py`: Normalizing utility bill chaos (MMBtu, kWh, Joules) into a single unified Pandas cost report.
 
+* **Phase 2: High-Performance Vectorization & Algebra**
+    * `05_f1_telemetry_vectorization.py`: Array math on RPM, Speed, and Tire Pressure operating on millions of rows in milliseconds.
+    * `06_structural_stress_testing.py`: Cross-unit algebra combining Kips, Newtons, and Pound-force over Square Meters for civil engineering loads.
+    * `07_financial_billing_precision.py`: Understanding when to use `.mag` (fast Python floats for Math/ML) vs `.exact` (high-precision Decimals for strict financial audits).
+
+* **Phase 3: The Axiom Engine (Domain-Driven Engineering)**
+    * `08_gas_pipeline_thermodynamics.py`: Using Contextual Shifts to dynamically calculate industrial gas volume expansion based on real-time temperature and pressure (PV=nRT).
+    * `09_end_to_end_esg_pipeline.py`: The Grand Unified Theory of Chisa. Synthesizing a custom dimension (Carbon Intensity), cleaning data into it via Schema, and guarding algorithms with `@require` and `@prepare`.
+
+* **Phase 4: Real-World Ecosystem Integration**
+    * `10_pandas_groupby_physics.py`: Integrating Chisa arrays directly with Pandas `GroupBy` to aggregate daily IoT power production into monthly summaries.
+    * `11_scikit_learn_transformer.py`: Building a custom ML `BaseEstimator` to autonomously normalize heterogeneous unit arrays before training a Random Forest.
+    * `12_handling_sensor_drift.py`: Using NumPy array masks and vectorization to neutralize factory machine calibration errors without slow `for` loops.
+    * `13_dynamic_alert_thresholds.py`: Simulating an IoT streaming pipeline where safety limits (`@axiom.bound`) change dynamically based on the machine's operating context.
+    * `14_cloud_compute_costs.py`: Utilizing extreme Metaclass algebra (`Currency / (RAM * Time)`) to synthesize and calculate abstract Server Compute billing rates ($ / GB-Hour).
 
 ---
 
-## Installation
+## 🔬 The Engine: Explicit Dimensional Algebra
+
+While Chisa's Schema is built for Data Engineering pipelines, underneath it lies a highly strict, Metaclass-driven Object-Oriented physics engine. If you are a Data Scientist, you can extract your clean data into Chisa Arrays for cross-dimensional mathematics with zero memory leaks.
+
+```python
+import numpy as np
+import chisa as cs
+from chisa import u
+
+# Seamless cross-unit Metaclass Vectorized Synthesis (Mass * Acceleration = Force)
+Mass = u.Kilogram(np.random.uniform(10, 100, 1_000_000))
+Acceleration = (u.Meter / (u.Second ** 2))(np.random.uniform(0.5, 9.8, 1_000_000))
+
+Force = Mass * Acceleration
+Force_kN_array = Force.to(u.Newton * 1000).mag
+```
+> 📖 **Deep Dive:** For advanced features like Dynamic Contextual Scaling (Mach), Axiom Bound derivation, and Registry Introspection, please refer to our **[Advanced Physics Documentation](https://github.com/rannd1nt/chisa/blob/main/docs/advanced_physics.md)**.
+
+---
+
+## 📦 Installation
 **Install via pip:**
 ```bash
 pip install chisa
 ```
 **Requirements:**
 - Python 3.8+
-- numpy 
+- numpy >= 1.26.0
+- pandas >= 2.0.0
  
 ---
 
-## Roadmap & TODOs
-
-- **Enhanced Dimensional Synthesis:** Overhauling the `@axiom.derive` decorator to support native, highly readable mathematical syntax (e.g., `@axiom.derive(Joule / Second)` instead of passing lists).
-
-- **Safe Cross-Dimensional OOP:** Unlocking the currently restricted `NotImplementedError` for cross-dimensional operations. This will allow natural OOP multiplication and division (e.g., `Meter(10) / Second(2) -> <SpeedUnit: 5.0 m/s>`) while strictly preserving dimensional integrity.
-
-- **Global Context Manager:** (with `chisa.conf()`) Introduce a global state override to temporarily force data types (e.g., `dtype='float32'`) or ignore bounding rules across the entire computational environment.
-
-- **Submodule Separation:** Refactoring the `@axiom` namespace into domain-specific submodules (e.g., `@axiom.unit...` for class definitions and `@axiom.formula...` for function injection) to enforce stricter separation of concerns.
+## 🛠 Roadmap & TODOs
+- **String Expression Parser:** Upgrading the registry to autonomously parse complex composite strings (e.g., `"kg * m / s^2"`).
+- **Global Context Manager:** Introduce `chisa.conf()` to temporarily force data types or ignore boundary rules.
+- **Polars Integration:** Expanding `Schema.normalize()` to support Polars DataFrames for ultra-fast Rust-based data processing.
 
 ---
 
-##  Contributing
-
-Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make to Chisa are **greatly appreciated**.
-
-If you have a suggestion that would make this framework better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement". 
-Don't forget to give the project a star!
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'feat: Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+## 🤝 Contributing
+Contributions are what make the open-source community an amazing place to learn, inspire, and create. Any contributions you make to Chisa are **greatly appreciated**.
 
 ---
 
 ## License
-
 Distributed under the MIT License. See the `LICENSE` file for more information.
-
----
-
-<p align="center">
-  <i>"Measuring the universe, one dimension at a time."</i>
-</p>
