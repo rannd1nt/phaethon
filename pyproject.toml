@@ -5,16 +5,18 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "chisa"
 version = "0.2.0"
-description = "A Dimensional Algebra & Semantic Transformation Framework"
+description = "Unit-Safe Data Pipeline Schema and Dimensional Algebra Framework"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
     {name = "Zahraan Dzakii Tsaqiif", email = "zahraandzakiits@gmail.com"}
 ]
+
 keywords = [
-    "physics", "unit conversion", "dimensional analysis", 
-    "engineering", "science", "metrology", "astrophysics", "numpy"
+    "data engineering", "schema validation", "pandas", 
+    "physics", "dimensional analysis", "data pipeline",
+    "numpy", "unit conversion", "machine learning"
 ]
 
 dependencies = [
@@ -30,12 +32,14 @@ classifiers = [
     "Intended Audience :: Developers",
     "Intended Audience :: Education",
     "Intended Audience :: Science/Research",
+    "Intended Audience :: Information Technology",
     
     # Topics
     "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: Physics",
     "Topic :: Scientific/Engineering :: Mathematics",
     "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Database",
     
     # License & Environment
     "License :: OSI Approved :: MIT License",
