@@ -64,3 +64,26 @@ class AmbiguousUnitError(ChisaError, ValueError):
             f"Ambiguous unit '{unit_name}'. It matches multiple dimensions: {dimensions}. "
             f"Please use a more specific alias (e.g., 'meter' or 'minute')."
         )
+
+class NormalizationError(ChisaError, ValueError):
+    """
+    Raised when a Schema fails to normalize a field, providing pinpoint debugging context.
+    """
+    __module__ = "builtins"
+    
+    def __init__(self, field: str, issue: str, indices: list, raw_sample: str = "", expected_dim: str = "", suggestion: str = "") -> None:
+        self.field = field
+        
+        display_idx = str(indices[:3]).replace(']', '')
+        idx_msg = f"{display_idx}, ...]" if len(indices) > 3 else f"{indices}"
+        
+        msg = f"\nNormalization failed for field '{field}' at index {idx_msg}.\n"
+        msg += f"   ► Issue              : {issue}\n"
+        if expected_dim:
+            msg += f"   ► Expected Dimension : {expected_dim}\n"
+        if raw_sample:
+            msg += f"   ► Raw Value Sample   : '{raw_sample}'\n"
+        if suggestion:
+            msg += f"   ► Suggestion         : {suggestion}\n"
+            
+        super().__init__(msg)

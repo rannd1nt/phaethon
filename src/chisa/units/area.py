@@ -8,12 +8,12 @@ The absolute base unit for this dimension is the Square Meter (m²).
 """
 
 from ..core.base import BaseUnit
-from ..core import axioms as axiom
-from ..core import constants as const
+from ..core import axioms as _axiom
+from ..core import constants as _const
 from .length import Meter, Centimeter, Millimeter, Kilometer, Inch, Foot, Yard, Mile
 
 
-@axiom.bound(min_val=0, msg="Area cannot be negative!")
+@_axiom.bound(min_val=0, msg="Area cannot be negative!")
 class AreaUnit(BaseUnit):
     """The primary parent class for the Area dimension. The base unit is Square Meter (m²)."""
     dimension = "area"
@@ -22,45 +22,69 @@ class AreaUnit(BaseUnit):
 # =========================================================================
 # 1. SQUARE LENGTHS 
 # =========================================================================
-@axiom.derive(mul=[Meter, Meter])
+@_axiom.derive(mul=[Meter, Meter])
 class SquareMeter(AreaUnit):
     symbol = "m²"
-    aliases = ["sqm", "square meter", "square meters"]
+    aliases = [
+        "m2", "m^2", "m**2", "sqm", "sq m", "sq.m.", "sq. m.",
+        "square meter", "square meters", "square metre", "square metres"
+    ]
 
-@axiom.derive(mul=[Centimeter, Centimeter])
+@_axiom.derive(mul=[Centimeter, Centimeter])
 class SquareCentimeter(AreaUnit):
     symbol = "cm²"
-    aliases = ["sqcm", "square centimeter", "square centimeters"]
+    aliases = [
+        "cm2", "cm^2", "sqcm", "sq cm", "sq.cm.", "sq. cm.",
+        "square centimeter", "square centimeters", "square centimetre", "square centimetres"
+    ]
 
-@axiom.derive(mul=[Millimeter, Millimeter])
+@_axiom.derive(mul=[Millimeter, Millimeter])
 class SquareMillimeter(AreaUnit):
     symbol = "mm²"
-    aliases = ["sqmm", "square millimeter"]
+    aliases = [
+        "mm2", "mm^2", "sqmm", "sq mm", "sq.mm.", "sq. mm.",
+        "square millimeter", "square millimeters", "square millimetre", "square millimetres"
+    ]
 
-@axiom.derive(mul=[Kilometer, Kilometer])
+@_axiom.derive(mul=[Kilometer, Kilometer])
 class SquareKilometer(AreaUnit):
     symbol = "km²"
-    aliases = ["sqkm", "square kilometer", "square kilometers"]
+    aliases = [
+        "km2", "km^2", "sqkm", "sq km", "sq.km.", "sq. km.",
+        "square kilometer", "square kilometers", "square kilometre", "square kilometres"
+    ]
 
-@axiom.derive(mul=[Inch, Inch])
+@_axiom.derive(mul=[Inch, Inch])
 class SquareInch(AreaUnit):
-    symbol = "sq in"
-    aliases = ["in²", "square inch", "square inches"]
+    symbol = "sq_in"
+    aliases = [
+        "in²", "in2", "in^2", "sq in", "sq.in.", "sq. in.",
+        "square inch", "square inches"
+    ]
 
-@axiom.derive(mul=[Foot, Foot])
+@_axiom.derive(mul=[Foot, Foot])
 class SquareFoot(AreaUnit):
-    symbol = "sq ft"
-    aliases = ["ft²", "square foot", "square feet"]
+    symbol = "sq_ft"
+    aliases = [
+        "ft²", "ft2", "ft^2", "sq ft", "sq.ft.", "sq. ft.",
+        "square foot", "square feet"
+    ]
 
-@axiom.derive(mul=[Yard, Yard])
+@_axiom.derive(mul=[Yard, Yard])
 class SquareYard(AreaUnit):
-    symbol = "sq yd"
-    aliases = ["yd²", "square yard", "square yards"]
+    symbol = "sq_yd"
+    aliases = [
+        "yd²", "yd2", "yd^2", "sq yd", "sq.yd.", "sq. yd.",
+        "square yard", "square yards"
+    ]
 
-@axiom.derive(mul=[Mile, Mile])
+@_axiom.derive(mul=[Mile, Mile])
 class SquareMile(AreaUnit):
-    symbol = "sq mi"
-    aliases = ["mi²", "square mile", "square miles"]
+    symbol = "sq_mi"
+    aliases = [
+        "mi²", "mi2", "mi^2", "sq mi", "sq.mi.", "sq. mi.",
+        "square mile", "square miles"
+    ]
 
 
 # =========================================================================
@@ -69,14 +93,14 @@ class SquareMile(AreaUnit):
 class Hectare(AreaUnit):
     symbol = "ha"
     aliases = ["hectare", "hectares"]
-    base_multiplier = const.HECTARE_TO_SQ_METER
+    base_multiplier = _const.HECTARE_TO_SQ_METER
 
 class Are(AreaUnit):
     symbol = "a"
     aliases = ["are", "ares"]
-    base_multiplier = const.ARE_TO_SQ_METER
+    base_multiplier = _const.ARE_TO_SQ_METER
 
 class Acre(AreaUnit):
     symbol = "ac"
     aliases = ["acre", "acres"]
-    base_multiplier = const.ACRE_TO_SQ_METER
+    base_multiplier = _const.ACRE_TO_SQ_METER

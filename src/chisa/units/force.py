@@ -8,15 +8,15 @@ The absolute base unit for this dimension is the Newton (N).
 """
 
 from ..core.base import BaseUnit
-from ..core import axioms as axiom
-from ..core import constants as const
+from ..core import axioms as _axiom
+from ..core import constants as _const
 
 from .mass import Kilogram, Gram, Pound, Ounce, MetricTon
 from .length import Meter, Centimeter, Foot
 from .time import Second
 
 
-@axiom.bound(min_val=0, msg="The scalar magnitude of force cannot be negative.")
+@_axiom.bound(min_val=0, msg="The scalar magnitude of force cannot be negative.")
 class ForceUnit(BaseUnit):
     """The primary parent class for the Force dimension. The base unit is Newton (N)."""
     dimension = "force"
@@ -26,23 +26,23 @@ class ForceUnit(BaseUnit):
 # 1. SI / METRIC UNITS (Absolute)
 # =========================================================================
 # Newton: 1 kg * m / s²
-@axiom.derive(mul=[Kilogram, Meter], div=[Second, Second])
+@_axiom.derive(mul=[Kilogram, Meter], div=[Second, Second])
 class Newton(ForceUnit):
     symbol = "N"
-    aliases = ["newton", "newtons"]
+    aliases = ["n", "newton", "newtons"]
 
-@axiom.derive(mul=[1000, Newton])
+@_axiom.derive(mul=[1000, Newton])
 class Kilonewton(ForceUnit):
     symbol = "kN"
-    aliases = ["kilonewton", "kilonewtons"]
+    aliases = ["kn", "KN", "kilonewton", "kilonewtons", "kilo-newton"]
 
-@axiom.derive(mul=[1e6, Newton])
+@_axiom.derive(mul=[1e6, Newton])
 class Meganewton(ForceUnit):
     symbol = "MN"
-    aliases = ["meganewton", "meganewtons"]
+    aliases = ["mn", "meganewton", "meganewtons", "mega-newton"]
 
 # Dyne (CGS System): 1 g * cm / s² (0.00001 N)
-@axiom.derive(mul=[Gram, Centimeter], div=[Second, Second])
+@_axiom.derive(mul=[Gram, Centimeter], div=[Second, Second])
 class Dyne(ForceUnit):
     symbol = "dyn"
     aliases = ["dyne", "dynes"]
@@ -52,45 +52,69 @@ class Dyne(ForceUnit):
 # 2. GRAVITATIONAL METRIC UNITS
 # =========================================================================
 # Kilogram-force (Kilopond): 1 kg * STANDARD_GRAVITY
-@axiom.derive(mul=[Kilogram, const.STANDARD_GRAVITY, Meter], div=[Second, Second])
+@_axiom.derive(mul=[Kilogram, _const.STANDARD_GRAVITY, Meter], div=[Second, Second])
 class KilogramForce(ForceUnit):
     symbol = "kgf"
-    aliases = ["kilogram-force", "kilopond", "kp"]
+    aliases = [
+        "kg-f", "kg_f", "kg f", "kilogram-force", "kilogram force", 
+        "kilograms-force", "kilopond", "kiloponds", "kp"
+    ]
 
-@axiom.derive(mul=[Gram, const.STANDARD_GRAVITY, Meter], div=[Second, Second])
+@_axiom.derive(mul=[Gram, _const.STANDARD_GRAVITY, Meter], div=[Second, Second])
 class GramForce(ForceUnit):
     symbol = "gf"
-    aliases = ["gram-force", "pond", "p"]
+    aliases = [
+        "g-f", "g_f", "g f", "gram-force", "gram force", 
+        "grams-force", "pond", "ponds", "p"
+    ]
 
-@axiom.derive(mul=[MetricTon, const.STANDARD_GRAVITY, Meter], div=[Second, Second])
+@_axiom.derive(mul=[MetricTon, _const.STANDARD_GRAVITY, Meter], div=[Second, Second])
 class TonneForce(ForceUnit):
     symbol = "tf"
-    aliases = ["tonne-force", "ton-force", "metric ton-force"]
+    aliases = [
+        "t-f", "t_f", "t f", "tonne-force", "ton-force", 
+        "metric ton-force", "metric ton force", "tonnes-force"
+    ]
 
 
 # =========================================================================
 # 3. US CUSTOMARY / IMPERIAL UNITS
 # =========================================================================
 # Pound-force: 1 lb * standard Earth gravity
-@axiom.derive(mul=[Pound, const.STANDARD_GRAVITY, Meter], div=[Second, Second])
+@_axiom.derive(mul=[Pound, _const.STANDARD_GRAVITY, Meter], div=[Second, Second])
 class PoundForce(ForceUnit):
     symbol = "lbf"
-    aliases = ["pound-force", "pounds-force"]
+    aliases = [
+        "lb-f", "lb_f", "lb f", "lbsf", "lbs-f", 
+        "pound-force", "pounds-force", "pound force", "pounds force"
+    ]
+
+# Kip (Kilopound-force): 1000 lbf (Crucial for Civil Engineering)
+@_axiom.derive(mul=[1000, PoundForce])
+class Kip(ForceUnit):
+    symbol = "kip"
+    aliases = ["kips", "klbf", "kilopound-force", "kilopounds-force"]
 
 # Ounce-force: 1 oz * standard Earth gravity
-@axiom.derive(mul=[Ounce, const.STANDARD_GRAVITY, Meter], div=[Second, Second])
+@_axiom.derive(mul=[Ounce, _const.STANDARD_GRAVITY, Meter], div=[Second, Second])
 class OunceForce(ForceUnit):
     symbol = "ozf"
-    aliases = ["ounce-force", "ounces-force"]
+    aliases = [
+        "oz-f", "oz_f", "oz f", "ozsf", 
+        "ounce-force", "ounces-force", "ounce force", "ounces force"
+    ]
 
 # Poundal (Absolute Imperial): 1 lb * 1 ft / s²
-@axiom.derive(mul=[Pound, Foot], div=[Second, Second])
+@_axiom.derive(mul=[Pound, Foot], div=[Second, Second])
 class Poundal(ForceUnit):
     symbol = "pdl"
     aliases = ["poundal", "poundals"]
 
 # Ton-force (Short Ton / US): 2000 lb * standard Earth gravity
-@axiom.derive(mul=[2000, Pound, const.STANDARD_GRAVITY, Meter], div=[Second, Second])
+@_axiom.derive(mul=[2000, Pound, _const.STANDARD_GRAVITY, Meter], div=[Second, Second])
 class ShortTonForce(ForceUnit):
-    symbol = "short tonf"
-    aliases = ["tonf", "us ton-force", "short ton-force"]
+    symbol = "short_tonf"
+    aliases = [
+        "tonf", "us ton-force", "short ton-force", "short ton force",
+        "ton-force (US)", "ton-f", "ton_f", "tons-force"
+    ]

@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.0] - 2026-02-26
+
+### Evolution: Unit-Safe Data Pipeline Schema
+Chisa has officially evolved its primary identity from a "Physics Modelling Framework" to a **"Unit-Safe Data Pipeline Schema"**. The focus is now heavily geared towards Data Engineering, rescuing tabular data pipelines from the nightmare of mixed units, bizarre abbreviations, and impossible physical values.
+
+###  Major Feature: Declarative Data Schemas
+- **feat(schema):** Introduced `chisa.Schema` and `chisa.Field` for strict, declarative data normalization. 
+  - Allows Data Engineers to ingest messy, heterogeneous Pandas DataFrames and convert them into clean, dimensionally-validated datasets natively.
+- **feat(integration):** Officially elevated **Pandas** (`pandas>=2.0.0`) to a core dependency alongside NumPy, unlocking native vectorized Boolean masking and high-speed schema execution.
+- **feat(schema):** Added smart metadata management with `keep_unmapped=True` and `drop_raw=True` to seamlessly drop dirty columns while preserving vital pipeline tracking IDs.
+- **feat(schema):** Implemented Lifecycle Hooks (`@cs.pre_normalize` and `@cs.post_normalize`) allowing developers to inject custom domain logic directly into the validation flow.
+- **feat(parsing):** Massively expanded unit `aliases` across all dimensions to supercharge the `parse_string=True` method, allowing Chisa to autonomously capture and standardize highly irregular textual data.
+
+### Smart Error Intelligence
+- **feat(exceptions):** Introduced `NormalizationError`. Data pipelines no longer just crash silently. When `on_error='raise'` is triggered, Chisa now provides unparalleled Developer Experience (DX) by printing pinpoint debugging context:
+  - Exact index of the failure.
+  - Expected physical dimension vs. received anomaly.
+  - Snippet of the raw dirty string.
+  - Actionable suggestions to fix the data or adjust schema rules.
+
+### The Axiom Engine: Metaclass Algebra & Self-Learning Registry
+- **feat(metaclass):** Introduced direct Object-Oriented Metaclass Algebra. Users can now synthesize physical laws by directly dividing classes (e.g., `@axiom.derive(u.Kilogram / u.KilowattHour)`). 
+- **feat(registry):** Implemented a "Self-Learning" DNA injection mechanism. The `UnitRegistry` now dynamically listens to `__init_subclass__` and autonomously registers new dimensional signatures and custom aliases at runtime.
+  - *Impact:* Custom dimensions (like ESG Carbon Metrics) synthesized in scripts are instantly recognized by `Schema.normalize()`, allowing seamless parsing of custom text like `"1000 kgCO2/kWh"`.
+
+### Fluent API Flexibility
+- **fix(fluent):** Patched a logic trap in the `convert()` engine's internal `_compute()` method. The Fluent API can now seamlessly handle all four permutations of input targets without crashing: String-to-String (`'km' -> 'm'`), Class-to-String (`u.Kilometer -> 'm'`), String-to-Class (`'km' -> u.Meter`), and Class-to-Class (`u.Kilometer -> u.Meter`).
+
+### Documentation Overhaul
+- **docs(readme):** Completely restructured the documentation architecture. 
+  - The main `README.md` is now strictly focused on Data Engineering (Schemas, Pipeline Hooks, Vectorization, and Pandas integration).
+  - Deep-dive scientific computing features (`@axiom` decorators, `vmath`, `C`, and metaclass architecture) have been cleanly migrated to `docs/advanced_physics.md`.
+- **docs(examples):** Completely overhauled the `examples/` directory with 14 brutal, real-world Data Engineering scripts (e.g., Cloud Compute Billing, ESG Carbon Tracking, Sensor Drift Neutralization).
+- **docs(notebooks):** Re-architected the interactive Google Colab notebooks. `T01` covers core fundamentals/Schemas, while `T02` provides a masterclass on cleaning a dirty IoT Pandas pipeline, complete with Matplotlib visualization demonstrating the catastrophic impact of unhandled data anomalies.
+
 ## [0.1.1] - 2026-02-24
 
 ### Core Engine & Type Safety (Hotfix)

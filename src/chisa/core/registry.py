@@ -1,5 +1,19 @@
 from typing import Dict, List, Type, Optional, Set, Any, Union
 from ..exceptions import UnitNotFoundError, DimensionMismatchError, AmbiguousUnitError
+import numpy as np
+
+_DIMENSIONAL_DNA = {
+    frozenset({('length', 1), ('time', -1)}): 'speed',
+    frozenset({('length', 2)}): 'area',
+    frozenset({('length', 3)}): 'volume',
+    frozenset({('mass', 1), ('length', 1), ('time', -2)}): 'force',
+    frozenset({('mass', 1), ('length', 2), ('time', -2)}): 'energy',
+    frozenset({('mass', 1), ('length', 2), ('time', -3)}): 'power',
+    frozenset({('mass', 1), ('length', -1), ('time', -2)}): 'pressure',
+    frozenset({('mass', 1), ('length', -3)}): 'density',
+}
+
+_DIMENSION_TO_SIG = {v: k for k, v in _DIMENSIONAL_DNA.items()}
 
 class UnitRegistry:
     """
@@ -11,7 +25,7 @@ class UnitRegistry:
 
     def _register(self, cls: Type) -> None:
         def add_alias(alias: str) -> None:
-            key = alias.lower().strip()
+            key = alias.strip()
             if key not in self._units:
                 self._units[key] = []
             if cls not in self._units[key]:
@@ -24,11 +38,42 @@ class UnitRegistry:
             for alias in cls.aliases:
                 add_alias(alias)
     
+    def inject_dna(self, sig: frozenset, dim: str) -> None:
+        """Self-learning mechanism to dynamically expand Chisa's physics engine."""
+        if not sig or not dim or dim == 'anonymous':
+            return
+            
+        if sig not in _DIMENSIONAL_DNA:
+            _DIMENSIONAL_DNA[sig] = dim
+        if dim not in _DIMENSION_TO_SIG:
+            _DIMENSION_TO_SIG[dim] = sig
+
+    def get_signature_for_dim(self, dim: str) -> frozenset:
+        if dim in _DIMENSION_TO_SIG:
+            return _DIMENSION_TO_SIG[dim]
+        return frozenset({(dim, 1)})
+        
+    def resolve_signature(self, sig: frozenset) -> str:
+        if len(sig) == 1:
+            dim, exp = next(iter(sig))
+            if exp == 1:
+                return dim
+                
+        return _DIMENSIONAL_DNA.get(sig, 'anonymous')
+    
     def get_unit_class(self, unit_name: str, expected_dim: Optional[str] = None) -> Type:
         """Internal engine method to resolve string abbreviations to classes."""
-        key = unit_name.lower().strip()
+        key = unit_name.strip()
+        
         candidates = self._units.get(key)
         
+        if not candidates:
+            lower_key = key.lower()
+            for k, v in self._units.items():
+                if k.lower() == lower_key:
+                    candidates = v
+                    break
+                    
         if not candidates:
             raise UnitNotFoundError(unit_name)
             

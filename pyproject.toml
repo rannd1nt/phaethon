@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "chisa"
-version = "0.1.1"
-description = "A logic-driven dimensional algebra and strict physics modeling framework."
+version = "0.2.0"
+description = "A Dimensional Algebra & Semantic Transformation Framework"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
@@ -18,8 +18,10 @@ keywords = [
 ]
 
 dependencies = [
-    "numpy>=1.26.0"
+    "numpy>=1.26.0",
+    "pandas>=2.0.0"
 ]
+
 classifiers = [
     # Development Status
     "Development Status :: 4 - Beta",

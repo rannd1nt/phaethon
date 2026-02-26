@@ -167,16 +167,10 @@ class _ConversionBuilder:
         if not self._target_unit:
             raise ConversionError("Target unit missing. You must call .to('unit') before computing.")
 
-        SourceClass = None
-        TargetClass = None
-        expected_dimension = None
+        SourceClass = self.source_unit if hasattr(self.source_unit, 'dimension') else None
+        TargetClass = self._target_unit if hasattr(self._target_unit, 'dimension') else None
 
-        if getattr(self.source_unit, 'dimension', None):
-            SourceClass = self.source_unit
-            expected_dimension = SourceClass.dimension
-        elif getattr(self._target_unit, 'dimension', None):
-            TargetClass = self._target_unit
-            expected_dimension = TargetClass.dimension
+        expected_dimension = getattr(SourceClass, 'dimension', None) or getattr(TargetClass, 'dimension', None)
 
         if expected_dimension is None:
             target_ambiguous = False

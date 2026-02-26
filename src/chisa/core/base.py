@@ -1,3 +1,4 @@
+import math
 from decimal import Decimal, getcontext
 from typing import Union, Optional, List, Any, Type, Dict
 from .registry import default_ureg
@@ -10,8 +11,148 @@ try:
 except ImportError:
     HAS_NUMPY = False
 
+# =========================================================================
+# THE METACLASS ENGINE (v0.2.0)
+# =========================================================================
+def _combine_signatures(sig1: frozenset, sig2: frozenset, operation: str) -> frozenset:
+    c1 = dict(sig1) if sig1 else {}
+    c2 = dict(sig2) if sig2 else {}
+    
+    all_dims = set(c1.keys()).union(c2.keys())
+    new_sig = {}
+    
+    for dim in all_dims:
+        exp1 = c1.get(dim, 0)
+        exp2 = c2.get(dim, 0)
+        
+        if operation == 'mul':
+            new_exp = exp1 + exp2
+        elif operation == 'div':
+            new_exp = exp1 - exp2
+        
+        if new_exp != 0:
+            new_sig[dim] = new_exp
+            
+    return frozenset(new_sig.items())
 
-class BaseUnit:
+def _find_existing_class(signature: frozenset, target_multiplier: float) -> Optional[Type]:
+    from .registry import default_ureg
+    resolved_dim = default_ureg.resolve_signature(signature)
+    
+    if resolved_dim == 'anonymous':
+        return None
+        
+    if math.isclose(target_multiplier, 1.0, rel_tol=1e-9):
+        try:
+            base_cls = default_ureg.baseof(resolved_dim)
+            if float(getattr(base_cls, 'base_offset', 0.0)) == 0.0:
+                return base_cls
+        except ValueError:
+            pass
+            
+    candidates = default_ureg.unitsin(resolved_dim, ascls=True)
+    valid_matches = []
+    
+    for cls in candidates:
+        if math.isclose(float(getattr(cls, 'base_multiplier', 0)), target_multiplier, rel_tol=1e-9):
+            if float(getattr(cls, 'base_offset', 0.0)) == 0.0:
+                valid_matches.append(cls)
+                
+    if not valid_matches:
+        return None
+        
+    return valid_matches[0]
+
+class ChisaUnitMeta(type):
+    """
+    Metaclass that tracks dimensional signatures and dynamically generates 
+    new derived unit classes during cross-unit algebra (e.g., u.Meter / u.Second).
+    """
+    def __new__(mcs, name, bases, namespace):
+        cls = super().__new__(mcs, name, bases, namespace)
+        if '_signature' not in namespace:
+            dim = getattr(cls, 'dimension', None)
+            if dim and dim != 'anonymous':
+                from .registry import default_ureg
+                cls._signature = default_ureg.get_signature_for_dim(dim)
+            else:
+                cls._signature = frozenset()
+        return cls
+
+    def _create_derived_class(cls, new_name, new_sig, new_mult, new_symbol):
+        existing_cls = _find_existing_class(new_sig, float(new_mult))
+        if existing_cls:
+            return existing_cls
+
+        from .registry import default_ureg
+        resolved_dim = default_ureg.resolve_signature(new_sig)
+        
+        attrs = {
+            '_signature': new_sig,
+            'base_multiplier': float(new_mult),
+            'base_offset': 0.0,
+            'dimension': resolved_dim,
+            'symbol': new_symbol,
+            'is_anonymous': (resolved_dim == 'anonymous')
+        }
+        
+        base_unit_cls = next((c for c in cls.__mro__ if c.__name__ == 'BaseUnit'), cls.__bases__[0])
+        return type(new_name, (base_unit_cls,), attrs)
+
+    def __mul__(cls, other) -> Type['BaseUnit']:
+        """Synthesizes a new class by multiplying dimensions and base multipliers."""
+        if isinstance(other, ChisaUnitMeta):
+            new_sig = _combine_signatures(getattr(cls, '_signature', frozenset()), 
+                                          getattr(other, '_signature', frozenset()), 'mul')
+            new_mult = Decimal(str(cls.base_multiplier)) * Decimal(str(other.base_multiplier))
+            new_name = f"Derived_{cls.__name__}_mul_{other.__name__}"
+            new_symbol = f"{getattr(cls, 'symbol', '')}*{getattr(other, 'symbol', '')}"
+            return cls._create_derived_class(new_name, new_sig, new_mult, new_symbol)
+            
+        elif isinstance(other, (int, float, Decimal)):
+            new_sig = getattr(cls, '_signature', frozenset())
+            new_mult = Decimal(str(cls.base_multiplier)) * Decimal(str(other))
+            new_name = f"Derived_{cls.__name__}_mul_scalar"
+            new_symbol = f"{other}*{getattr(cls, 'symbol', '')}"
+            return cls._create_derived_class(new_name, new_sig, new_mult, new_symbol)
+        return NotImplemented
+
+    def __rmul__(cls, other):
+        """Synthesizes a new class by multiplying dimensions and base multipliers (reverse)."""
+        return ChisaUnitMeta.__mul__(cls, other)
+
+    def __truediv__(cls, other) -> Type['BaseUnit']:
+        """Synthesizes a new class by dividing dimensions and base multipliers."""
+        if isinstance(other, ChisaUnitMeta):
+            new_sig = _combine_signatures(getattr(cls, '_signature', frozenset()), 
+                                          getattr(other, '_signature', frozenset()), 'div')
+            if getattr(other, 'base_multiplier', 0) == 0:
+                raise ZeroDivisionError()
+            new_mult = Decimal(str(cls.base_multiplier)) / Decimal(str(other.base_multiplier))
+            new_name = f"Derived_{cls.__name__}_div_{other.__name__}"
+            new_symbol = f"{getattr(cls, 'symbol', '')}/{getattr(other, 'symbol', '')}"
+            return cls._create_derived_class(new_name, new_sig, new_mult, new_symbol)
+            
+        elif isinstance(other, (int, float, Decimal)):
+            if other == 0: raise ZeroDivisionError()
+            new_sig = getattr(cls, '_signature', frozenset())
+            new_mult = Decimal(str(cls.base_multiplier)) / Decimal(str(other))
+            new_name = f"Derived_{cls.__name__}_div_scalar"
+            new_symbol = f"{getattr(cls, 'symbol', '')}/{other}"
+            return cls._create_derived_class(new_name, new_sig, new_mult, new_symbol)
+        return NotImplemented
+
+    def __pow__(cls, power) -> Type['BaseUnit']:
+        """Synthesizes a new class by exponentiating dimensions and base multipliers."""
+        if not isinstance(power, (int, float)): return NotImplemented
+        current_sig = dict(getattr(cls, '_signature', frozenset()))
+        new_sig = frozenset({dim: exp * power for dim, exp in current_sig.items()}.items())
+        new_mult = float(cls.base_multiplier) ** float(power)
+        new_name = f"Derived_{cls.__name__}_pow_{power}"
+        new_symbol = f"{getattr(cls, 'symbol', '')}^{power}"
+        return cls._create_derived_class(new_name, new_sig, new_mult, new_symbol)
+
+class BaseUnit(metaclass=ChisaUnitMeta):
     """
     The foundational core class for all physical and digital units in Chisa.
     Provides the standard interface for dimensional algebra, scalar conversions,
@@ -22,6 +163,7 @@ class BaseUnit:
     aliases: Optional[List[str]] = None
     base_multiplier: Union[float, Decimal] = 1.0
     base_offset: Union[float, Decimal] = 0.0
+    is_anonymous: bool = False
 
     def __init_subclass__(cls, **kwargs) -> None:
         """
@@ -29,21 +171,14 @@ class BaseUnit:
         Injects the new class directly into the global UnitRegistry.
         """
         super().__init_subclass__(**kwargs)
-        default_ureg._register(cls)
+        if not getattr(cls, 'is_anonymous', False) and getattr(cls, 'dimension', 'anonymous') != 'anonymous':
+            default_ureg._register(cls)
+            
+            sig = getattr(cls, '_signature', None)
+            if sig:
+                default_ureg.inject_dna(sig, cls.dimension)
 
     def __init__(self, value: Union[int, float, str, Decimal, Any], context: Optional[Dict[str, Any]] = None) -> None:
-        """
-        A unit object, handling both scalar and vectorized inputs.
-
-        Args:
-            value (Union[int, float, str, Decimal, Any]): The magnitude of the unit. 
-                Accepts pure scalars, lists, tuples, or NumPy arrays.
-            context (Optional[Dict[str, Any]]): Contextual physical properties 
-                required for dynamic scaling (e.g., {'temp_c': 30}).
-                
-        Raises:
-            TypeError: If the input value is not a recognized numeric or iterable type.
-        """
         if HAS_NUMPY and isinstance(value, (np.ndarray, np.generic)):
             self._value = value
         elif HAS_NUMPY and isinstance(value, (list, tuple)):
@@ -62,32 +197,12 @@ class BaseUnit:
     # =========================================================================
     @property
     def exact(self) -> Union[Decimal, Any]:
-        """
-        Returns the exact, unadulterated internal representation of the unit.
-        
-        - If the engine/user strictly defined a `decimal.Decimal`, it returns the Decimal.
-        - If it's a standard scalar, it returns the pure Python `float`.
-        - If it's a vector, it returns the original `numpy.ndarray`.
-        
-        Use `.exact` strictly when you need audit-level precision (e.g., logging 
-        or database insertion) and are prepared to handle Python's strict type rules 
-        (e.g., preventing Decimal and float multiplication).
-        """
+        """Returns the exact raw magnitude, preserving high-precision Decimals if used."""
         return self._value
 
     @property
     def mag(self) -> Any:
-        """
-        Returns the numeric magnitude as a guaranteed math-safe Python primitive.
-        
-        - For scalars: Always returns a standard `float`. If the internal value is 
-          a `Decimal`, it safely downcasts it to prevent cross-type TypeErrors 
-          when mixing with external Python calculations.
-        - For vectors: Returns the `numpy.ndarray` intact.
-        
-        Always use `.mag` when extracting values to perform external physics 
-        formulas, plotting (Matplotlib), or machine learning pipelines.
-        """
+        """Returns the magnitude safely downcasted to a standard Python float or NumPy array."""
         if HAS_NUMPY and isinstance(self._value, (np.ndarray, np.generic)):
             return self._value
             
@@ -100,7 +215,6 @@ class BaseUnit:
     # INTERNAL CORE LOGIC
     # =========================================================================
     def _to_base_value(self) -> Union[float, Decimal, Any]:
-        """Converts the current magnitude to the dimension's absolute base point."""
         if isinstance(self._value, Decimal):
             val_with_offset = self._value + Decimal(str(self.base_offset))
             return val_with_offset * Decimal(str(self.base_multiplier))
@@ -110,7 +224,6 @@ class BaseUnit:
 
     @classmethod
     def _from_base_value(cls, base_val: Union[float, Decimal, Any], context: Dict[str, Any]) -> Union[float, Decimal, Any]:
-        """Converts a magnitude from the dimension's absolute base point to this specific unit."""
         if isinstance(base_val, Decimal):
             val = base_val / Decimal(str(cls.base_multiplier))
             return val - Decimal(str(cls.base_offset))
@@ -118,7 +231,6 @@ class BaseUnit:
         val = base_val / float(cls.base_multiplier)
         return val - float(cls.base_offset)
 
-    # Whitelisted NumPy Operations
     _ALLOWED_UFUNCS = {
         'add', 'subtract', 'maximum', 'minimum', 'fmax', 'fmin', 
         'absolute', 'negative', 'positive', 'rint'
@@ -129,7 +241,6 @@ class BaseUnit:
     }
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
-        """Portal for low-level element-wise operations (e.g., np.add)."""
         if ufunc.__name__ not in self._ALLOWED_UFUNCS:
             raise TypeError(
                 f"Chisa Dimensional Guard: Operation 'np.{ufunc.__name__}' is "
@@ -150,7 +261,6 @@ class BaseUnit:
         return self.__class__(final_value, context=self.context)
     
     def __array_function__(self, func, types, args, kwargs):
-        """Portal for high-level reduction/statistical operations (e.g., np.mean, np.max)."""
         if func.__name__ not in self._ALLOWED_FUNCTIONS:
             raise TypeError(
                 f"Chisa Dimensional Guard: Function 'np.{func.__name__}' is "
@@ -191,18 +301,8 @@ class BaseUnit:
 
     def to(self, unit: Union[Type['BaseUnit'], str]) -> 'BaseUnit':
         """
-        Converts the current OOP unit object into another unit within the same dimension.
-        Elegantly resolves string aliases via the global registry.
-
-        Args:
-            unit: The target destination class or string alias.
-
-        Returns:
-            A new instance of the target unit class maintaining the original context.
-            
-        Raises:
-            TypeError: If the target is not a valid Chisa BaseUnit or recognized string.
-            DimensionMismatchError: If the target belongs to a different physical dimension.
+        Converts the instance to another unit within the same dimension.
+        Supports both string aliases ('km') and explicit classes (u.Kilometer).
         """
         if isinstance(unit, str):
             try:
@@ -236,20 +336,7 @@ class BaseUnit:
         delim: Union[bool, str] = False,
         tag: bool = True
     ) -> str:
-        """
-        Formats the object's scalar value into a structured, human-readable string.
-        Safely applies string manipulation for vectorized NumPy arrays.
-
-        Args:
-            prec: Number of decimal places to display. Defaults to 4.
-            sigfigs: Number of significant figures to enforce.
-            scinote: If True, forces scientific notation (e.g., 1.5E3).
-            delim: If True, applies thousands separators. Can be a custom string character.
-            tag: If True, appends the unit's symbol to the end of the string.
-
-        Returns:
-            str: The formatted cosmetic string representing the unit.
-        """
+        """Applies precise structural and numeric formatting to the magnitude."""
         val = self._value
         
         if HAS_NUMPY and isinstance(val, (np.ndarray, np.generic)):
@@ -323,6 +410,7 @@ class BaseUnit:
         return val_str
 
     def __eq__(self, other: Any) -> Union[bool, Any]:
+        """Evaluates equality after cross-unit normalization."""
         if not isinstance(other, BaseUnit):
             return NotImplemented
         if self.dimension != getattr(other, "dimension", None):
@@ -334,6 +422,7 @@ class BaseUnit:
         return v1 == v2
 
     def __lt__(self, other: Any) -> Union[bool, Any]:
+        """Evaluates less-than after cross-unit normalization."""
         if not isinstance(other, BaseUnit):
             return NotImplemented
         if self.dimension != getattr(other, "dimension", None):
@@ -345,6 +434,7 @@ class BaseUnit:
         return v1 < v2
 
     def __le__(self, other: Any) -> Union[bool, Any]:
+        """Evaluates less-than-or-equal after cross-unit normalization."""
         if not isinstance(other, BaseUnit):
             return NotImplemented
         if self.dimension != getattr(other, "dimension", None):
@@ -356,6 +446,7 @@ class BaseUnit:
         return v1 <= v2
 
     def __ge__(self, other: Any) -> Union[bool, Any]:
+        """Evaluates greater-than-or-equal after cross-unit normalization."""
         if not isinstance(other, BaseUnit):
             return NotImplemented
         if self.dimension != getattr(other, "dimension", None):
@@ -367,6 +458,7 @@ class BaseUnit:
         return v1 >= v2
 
     def __ne__(self, other: Any) -> Union[bool, Any]:
+        """Evaluates not-equal after cross-unit normalization."""
         if not isinstance(other, BaseUnit):
             return NotImplemented
         if self.dimension != getattr(other, "dimension", None):
@@ -378,6 +470,7 @@ class BaseUnit:
         return v1 != v2
     
     def __add__(self, other: Any) -> 'BaseUnit':
+        """Adds another unit of the same dimension, returning the caller's unit."""
         if not isinstance(other, BaseUnit):
             return NotImplemented
         if self.dimension != getattr(other, "dimension", None):
@@ -392,6 +485,7 @@ class BaseUnit:
         return self.__class__(final_value, context=merged_context)
 
     def __sub__(self, other: Any) -> 'BaseUnit':
+        """Subtracts another unit of the same dimension, returning the caller's unit."""
         if not isinstance(other, BaseUnit):
             return NotImplemented
         if self.dimension != getattr(other, "dimension", None):
@@ -406,40 +500,48 @@ class BaseUnit:
         return self.__class__(final_value, context=merged_context)
     
     def __mul__(self, other: Any) -> 'BaseUnit':
-        """Permits multiplication of a unit strictly by a pure scalar or array."""
+        """Permits multiplication of a unit by a scalar, array, or another unit."""
         if isinstance(other, (int, float, Decimal)) or (HAS_NUMPY and isinstance(other, (np.ndarray, np.generic))):
             new_val = self._value * other
             return self.__class__(new_val, context=self.context)
         
         if isinstance(other, BaseUnit):
-            raise NotImplementedError(
-                "Cross-dimensional multiplication (e.g., Meter * Meter) is restricted "
-                "in this version to preserve dimensional integrity."
-            )
+            ResultClass = self.__class__ * other.__class__
+            v1, v2 = _normalize_types(self._value, other._value)
+            new_val = v1 * v2
+            merged_context = {**self.context, **other.context}
+            return ResultClass(new_val, context=merged_context)
+            
         return NotImplemented
 
     def __rmul__(self, other: Any) -> 'BaseUnit':
-        """Supports reverse scalar multiplication (e.g., 3 * Meter(5))."""
+        """Permits reverse scalar multiplication."""
         return self.__mul__(other)
 
     def __truediv__(self, other: Any) -> 'BaseUnit':
-        """Permits division of a unit strictly by a pure scalar or array."""
+        """Permits division of a unit by a scalar, array, or another unit."""
         if isinstance(other, (int, float, Decimal)) or (HAS_NUMPY and isinstance(other, (np.ndarray, np.generic))):
             new_val = self._value / other
             return self.__class__(new_val, context=self.context)
             
         if isinstance(other, BaseUnit):
-            raise NotImplementedError(
-                "Cross-dimensional division (e.g., Meter / Second) is restricted "
-                "in this version to preserve dimensional integrity."
-            )
+            ResultClass = self.__class__ / other.__class__
+            v1, v2 = _normalize_types(self._value, other._value)
+            new_val = v1 / v2
+            merged_context = {**self.context, **other.context}
+            return ResultClass(new_val, context=merged_context)
+            
+        return NotImplemented
+
+    def __pow__(self, power: Any) -> 'BaseUnit':
+        """Permits exponentiation of a unit instance."""
+        if isinstance(power, (int, float)):
+            ResultClass = self.__class__ ** power
+            new_val = self._value ** power
+            return ResultClass(new_val, context=self.context)
         return NotImplemented
 
     def __array__(self, dtype=None) -> Any:
-        """
-        NumPy standard dunder method to expose the raw array.
-        Allows Chisa objects to be natively ingested by Matplotlib, Scikit-Learn, pandas, or SymPy.
-        """
         if HAS_NUMPY:
             return np.asarray(self._value, dtype=dtype)
         return np.array([self._value], dtype=dtype)

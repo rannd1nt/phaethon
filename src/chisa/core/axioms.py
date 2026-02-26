@@ -110,6 +110,8 @@ def bound(
         A class decorator enforcing the boundary.
     """
     def decorator(cls: T_Class) -> T_Class:
+        cls.__axiom_min__ = min_val
+        cls.__axiom_max__ = max_val
         original_init = cls.__init__
         
         @functools.wraps(original_init)
@@ -302,21 +304,46 @@ def scale(
 
 
 def derive(
+    unit_expr: Optional[Type[Any]] = None,
+    *,
     mul: Optional[List[Union[Type, float, int, str, Decimal]]] = None, 
     div: Optional[List[Union[Type, float, int, str, Decimal]]] = None
 ) -> Callable[[T_Class], T_Class]:
     """
     A class decorator for Dimensional Synthesis.
-    Pre-calculates base multipliers from composing units safely at import time.
-
-    Args:
-        mul: A list of Unit Classes or pure numbers to multiply.
-        div: A list of Unit Classes or pure numbers to divide.
-
-    Returns:
-        A class decorator synthesizing the new unit's multiplier.
+    
+    Synthesizes a new physical unit by deriving its dimensional signature and 
+    base multiplier from an algebraic expression of existing units.
+    
+    Supports direct Metaclass algebra (preferred) or explicit mul/div lists.
+    
+    Example:
+        >>> # Modern Metaclass Syntax (V0.2.0+)
+        >>> @derive(u.Joule / u.Meter)
+        >>> class Newton(ForceUnit): 
+        >>>    symbol = "N"
+            
+        >>> # Legacy Syntax
+        >>> @derive(mul=[u.Joule], div=[u.Meter])
+        >>> class Newton(ForceUnit): 
+        >>>    symbol = "N"
     """
-    def decorator(cls: T_Class) -> T_Class:
+    def decorator(cls: Any) -> Any:
+        if unit_expr is not None:
+            cls.base_multiplier = getattr(unit_expr, 'base_multiplier', Decimal('1.0'))
+            cls.base_offset = getattr(unit_expr, 'base_offset', 0.0)
+
+            expr_sig = getattr(unit_expr, '_signature', None)
+            if expr_sig:
+                cls._signature = expr_sig
+                
+                from .registry import default_ureg
+                dim_name = getattr(cls, 'dimension', 'anonymous')
+                if dim_name != 'anonymous':
+                    default_ureg.inject_dna(expr_sig, dim_name)
+
+            return cls
+            
         mul_list = mul or []
         div_list = div or []
         
@@ -335,12 +362,13 @@ def derive(
                 val = Decimal(str(getattr(item, 'base_multiplier', 1.0)))
                 
             if val == 0:
-                raise ZeroDivisionError(f"Base multiplier or scalar cannot be zero in derive for {cls.__name__}.")
+                raise ZeroDivisionError(f"Base multiplier cannot be zero in derive for {cls.__name__}.")
             multiplier /= val
             
         cls.base_offset = 0.0 
         cls.base_multiplier = multiplier
         return cls
+        
     return decorator
 
 
