@@ -1,14 +1,14 @@
 from typing import List, Optional
 
-class ChisaError(Exception):
+class PhaethonError(Exception):
     """
-    Base exception class for all custom errors within the Chisa ecosystem.
-    Catching this will catch any Chisa-specific operational failures.
+    Base exception class for all custom errors within the Phaethon ecosystem.
+    Catching this will catch any Phaethon-specific operational failures.
     """
     __module__ = "builtins"
     pass
 
-class UnitNotFoundError(ChisaError, ValueError):
+class UnitNotFoundError(PhaethonError, ValueError):
     """
     Raised when a requested unit symbol or alias is not found in the global UnitRegistry.
     """
@@ -18,7 +18,7 @@ class UnitNotFoundError(ChisaError, ValueError):
         self.unit_name = unit_name
         super().__init__(f"Unit '{unit_name}' is not recognized in the registry!")
 
-class DimensionMismatchError(ChisaError, TypeError):
+class DimensionMismatchError(PhaethonError, TypeError):
     """
     Raised when attempting a mathematical operation or conversion across incompatible 
     physical dimensions (e.g., attempting to add Mass and Length).
@@ -31,7 +31,7 @@ class DimensionMismatchError(ChisaError, TypeError):
         ctx_msg = f" ({context})" if context else ""
         super().__init__(f"Dimension mismatch{ctx_msg}. Expected '{expected_dim}', but got '{received_dim}'.")
 
-class AxiomViolationError(ChisaError, ValueError):
+class AxiomViolationError(PhaethonError, ValueError):
     """
     Raised when a scalar value violates the physical laws or strict boundaries 
     defined by the @axiom.bound decorator (e.g., negative absolute temperature).
@@ -41,7 +41,7 @@ class AxiomViolationError(ChisaError, ValueError):
     def __init__(self, message: str) -> None:
         super().__init__(message)
 
-class ConversionError(ChisaError, ValueError):
+class ConversionError(PhaethonError, ValueError):
     """
     Raised when a conversion calculation fails procedurally (e.g., missing target unit, 
     invalid calculation mode, or unsupported method invocation like .flex() on Mass).
@@ -49,7 +49,7 @@ class ConversionError(ChisaError, ValueError):
     __module__ = "builtins"
     pass
 
-class AmbiguousUnitError(ChisaError, ValueError):
+class AmbiguousUnitError(PhaethonError, ValueError):
     """
     Raised when an input unit symbol overlaps across multiple dimensions 
     (e.g., 'm' matching both Meter and Minute) and the engine lacks the 
@@ -65,7 +65,7 @@ class AmbiguousUnitError(ChisaError, ValueError):
             f"Please use a more specific alias (e.g., 'meter' or 'minute')."
         )
 
-class NormalizationError(ChisaError, ValueError):
+class NormalizationError(PhaethonError, ValueError):
     """
     Raised when a Schema fails to normalize a field, providing pinpoint debugging context.
     """

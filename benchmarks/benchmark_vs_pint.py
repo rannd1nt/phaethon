@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import time
-import chisa as cs
+import phaethon as ptn
 from pint import UnitRegistry
 
 # Configuration
@@ -45,8 +45,8 @@ print(f"Method: Pint + Pandas (.apply)  | Time: {duration_pint:.4f}s")
 # ==========================================
 # 2. CHISA (Vectorized Schema Processing)
 # ==========================================
-class ConversionSchema(cs.Schema):
-    mass_kg: cs.u.Kilogram = cs.Field(
+class ConversionSchema(ptn.Schema):
+    mass_kg: ptn.u.Kilogram = ptn.Field(
         source="value", 
         unit_col="unit_label",
         on_error='coerce'

@@ -63,7 +63,7 @@ def _find_existing_class(signature: frozenset, target_multiplier: float) -> Opti
         
     return valid_matches[0]
 
-class ChisaUnitMeta(type):
+class PhaethonUnitMeta(type):
     """
     Metaclass that tracks dimensional signatures and dynamically generates 
     new derived unit classes during cross-unit algebra (e.g., u.Meter / u.Second).
@@ -101,7 +101,7 @@ class ChisaUnitMeta(type):
 
     def __mul__(cls, other) -> Type['BaseUnit']:
         """Synthesizes a new class by multiplying dimensions and base multipliers."""
-        if isinstance(other, ChisaUnitMeta):
+        if isinstance(other, PhaethonUnitMeta):
             new_sig = _combine_signatures(getattr(cls, '_signature', frozenset()), 
                                           getattr(other, '_signature', frozenset()), 'mul')
             new_mult = Decimal(str(cls.base_multiplier)) * Decimal(str(other.base_multiplier))
@@ -119,11 +119,11 @@ class ChisaUnitMeta(type):
 
     def __rmul__(cls, other):
         """Synthesizes a new class by multiplying dimensions and base multipliers (reverse)."""
-        return ChisaUnitMeta.__mul__(cls, other)
+        return PhaethonUnitMeta.__mul__(cls, other)
 
     def __truediv__(cls, other) -> Type['BaseUnit']:
         """Synthesizes a new class by dividing dimensions and base multipliers."""
-        if isinstance(other, ChisaUnitMeta):
+        if isinstance(other, PhaethonUnitMeta):
             new_sig = _combine_signatures(getattr(cls, '_signature', frozenset()), 
                                           getattr(other, '_signature', frozenset()), 'div')
             if getattr(other, 'base_multiplier', 0) == 0:
@@ -152,9 +152,9 @@ class ChisaUnitMeta(type):
         new_symbol = f"{getattr(cls, 'symbol', '')}^{power}"
         return cls._create_derived_class(new_name, new_sig, new_mult, new_symbol)
 
-class BaseUnit(metaclass=ChisaUnitMeta):
+class BaseUnit(metaclass=PhaethonUnitMeta):
     """
-    The foundational core class for all physical and digital units in Chisa.
+    The foundational core class for all physical and digital units in Phaethon.
     Provides the standard interface for dimensional algebra, scalar conversions,
     NumPy vectorization, and fluent formatting.
     """
@@ -243,7 +243,7 @@ class BaseUnit(metaclass=ChisaUnitMeta):
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         if ufunc.__name__ not in self._ALLOWED_UFUNCS:
             raise TypeError(
-                f"Chisa Dimensional Guard: Operation 'np.{ufunc.__name__}' is "
+                f"Phaethon Dimensional Guard: Operation 'np.{ufunc.__name__}' is "
                 f"blocked because it mutates physical dimensions."
             )
 
@@ -263,7 +263,7 @@ class BaseUnit(metaclass=ChisaUnitMeta):
     def __array_function__(self, func, types, args, kwargs):
         if func.__name__ not in self._ALLOWED_FUNCTIONS:
             raise TypeError(
-                f"Chisa Dimensional Guard: Function 'np.{func.__name__}' is "
+                f"Phaethon Dimensional Guard: Function 'np.{func.__name__}' is "
                 f"blocked to preserve dimensional integrity."
             )
 

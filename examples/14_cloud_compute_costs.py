@@ -1,14 +1,13 @@
 """
-Chisa Example 14: Cloud Compute Costs (Metaclass Grand Finale)
+Phaethon Example 14: Cloud Compute Costs (Metaclass Grand Finale)
 --------------------------------------------------------------
-Chisa isn't just for physics; it handles ANY dimensional logic.
+Phaethon isn't just for physics; it handles ANY dimensional logic.
 Here we synthesize a complex Cloud Billing rate: Currency / (Data * Time)
 to calculate exact server compute costs dynamically.
 """
 
-import chisa as cs
-from chisa import axiom, u
-from chisa.core.base import BaseUnit
+import phaethon as ptn
+from phaethon import BaseUnit, axiom, u
 from decimal import Decimal
 
 # 1. Bootstrapping a non-physics dimension: Currency
@@ -42,7 +41,7 @@ compute_load = job_ram * job_duration
 # Compute Load * Rate = Total Cost (Data * Time * (Currency / (Data * Time)) -> Currency!)
 total_cost = compute_load * aws_rate
 
-print(f"\nRaw Synthesized Cost : {total_cost} (Dimension: {cs.dimof(total_cost)})")
+print(f"\nRaw Synthesized Cost : {total_cost} (Dimension: {ptn.dimof(total_cost)})")
 
 # Ensure it safely lands as pure US Dollars
 final_bill = USDollar(total_cost.mag)

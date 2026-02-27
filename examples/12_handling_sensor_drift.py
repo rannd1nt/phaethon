@@ -1,12 +1,12 @@
 """
-Chisa Example 12: Handling Sensor Drift
+Phaethon Example 12: Handling Sensor Drift
 ---------------------------------------
-Use Chisa's vectorized algebra to neutralize factory machine 
+Use Phaethon's vectorized algebra to neutralize factory machine 
 calibration errors (drift) instantly across thousands of records.
 """
 
 import numpy as np
-from chisa import u
+from phaethon import u
 
 print("--- FACTORY SENSOR CALIBRATION ---")
 
@@ -21,7 +21,7 @@ furnace_temps = u.Celsius(raw_sensor_readings)
 known_drift = u.Celsius(2.5)
 
 # Subtract the drift across the entire array instantly
-# Chisa allows this dimensional subtraction safely!
+# Phaethon allows this dimensional subtraction safely!
 calibrated_temps = furnace_temps - known_drift
 
 print(f"Calibrated Readings (°C)  : {calibrated_temps.mag}")

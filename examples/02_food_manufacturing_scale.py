@@ -1,19 +1,19 @@
 """
-Chisa Example 02: Food Manufacturing Scale
+Phaethon Example 02: Food Manufacturing Scale
 ------------------------------------------
 This script safely converts kitchen imperial units (cups, fluid ounces, 
 pounds) into strict metric factory standards (Milliliters, Grams) instantly.
 """
 
 import pandas as pd
-import chisa as cs
-from chisa import u
+import phaethon as ptn
+from phaethon import u
 
-class RecipeScaleSchema(cs.Schema):
-    liquid_vol: u.Milliliter = cs.Field(
+class RecipeScaleSchema(ptn.Schema):
+    liquid_vol: u.Milliliter = ptn.Field(
         source="Liquid_Input", parse_string=True, on_error='coerce', round=1
     )
-    dry_mass: u.Gram = cs.Field(
+    dry_mass: u.Gram = ptn.Field(
         source="Dry_Weight", parse_string=True, on_error='coerce', round=1
     )
 

@@ -1,14 +1,13 @@
 """
-Chisa Example 05: F1 Telemetry Vectorization
+Phaethon Example 05: F1 Telemetry Vectorization
 --------------------------------------------
-Chisa completely bypasses scalar iteration. You can drop massive NumPy
-arrays directly into Chisa Units to perform conversions on millions 
+Phaethon completely bypasses scalar iteration. You can drop massive NumPy
+arrays directly into Phaethon Units to perform conversions on millions 
 of rows in fractions of a second.
 """
 
 import numpy as np
-import chisa as cs
-from chisa import u
+from phaethon import u
 
 # Simulating 1 million telemetry readings from an F1 car
 sample_size = 1_000_000

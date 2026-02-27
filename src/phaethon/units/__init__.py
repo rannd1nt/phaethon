@@ -1,7 +1,7 @@
 """
 Physical and Digital Dimension Modules.
 
-This package contains all concrete unit class definitions derived from Chisa's 
+This package contains all concrete unit class definitions derived from Phaethon's 
 BaseUnit. It covers 12 core dimensions (Length, Mass, Time, Speed, Temperature, 
 Pressure, Volume, Area, Force, Energy, Power, and Data). 
 

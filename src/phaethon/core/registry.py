@@ -39,7 +39,7 @@ class UnitRegistry:
                 add_alias(alias)
     
     def inject_dna(self, sig: frozenset, dim: str) -> None:
-        """Self-learning mechanism to dynamically expand Chisa's physics engine."""
+        """Self-learning mechanism to dynamically expand Phaethon's physics engine."""
         if not sig or not dim or dim == 'anonymous':
             return
             
@@ -150,7 +150,7 @@ def baseof(dimension: str) -> Type:
     Args:
         dimension: The dimension name (e.g., 'mass').
 
-    >>> chisa.baseof('temperature') -> <class 'Celsius'>
+    >>> phaethon.baseof('temperature') -> <class 'Celsius'>
     """
     return default_ureg.baseof(dimension)
 
@@ -158,7 +158,7 @@ def dims() -> List[str]:
     """
     Retrieves a list of all unique physical dimensions currently loaded.
 
-    >>> chisa.dims() -> ['area', 'mass', 'speed', ...]
+    >>> phaethon.dims() -> ['area', 'mass', 'speed', ...]
     """
     return default_ureg.dims()
 
@@ -171,8 +171,8 @@ def unitsin(dimension: str, ascls: bool = False) -> List[Union[str, Type]]:
         ascls: If True, returns the actual Class objects instead of strings.
         
     
-    >>> chisa.unitsin('mass') -> ['g', 'kg', 'lb', ...]
-    >>> chisa.unitsin('mass', ascls=True) -> [<class 'Gram'>, <class 'Kilogram'>, ...]
+    >>> phaethon.unitsin('mass') -> ['g', 'kg', 'lb', ...]
+    >>> phaethon.unitsin('mass', ascls=True) -> [<class 'Gram'>, <class 'Kilogram'>, ...]
     """
     return default_ureg.unitsin(dimension, ascls=ascls)
 
@@ -180,8 +180,8 @@ def dimof(obj: Any) -> str:
     """
     Resolves the physical dimension of a string alias, Unit Class, or Unit Instance.
     
-    >>> chisa.dimof('kg') -> 'mass'
-    >>> chisa.dimof(Celsius) -> 'temperature'
-    >>> chisa.dimof(Meter(10)) -> 'length'
+    >>> phaethon.dimof('kg') -> 'mass'
+    >>> phaethon.dimof(Celsius) -> 'temperature'
+    >>> phaethon.dimof(Meter(10)) -> 'length'
     """
     return default_ureg.dimof(obj)

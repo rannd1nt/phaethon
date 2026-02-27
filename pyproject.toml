@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "chisa"
-version = "0.2.0"
-description = "Unit-Safe Data Pipeline Schema and Dimensional Algebra Framework"
+name = "phaethon"
+version = "0.2.2"
+description = "Unit-Safe Data Pipeline Schema and Semantic Data Transformation"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
@@ -57,3 +57,8 @@ classifiers = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[project.urls]
+Homepage = "https://github.com/rannd1nt/phaethon"
+Repository = "https://github.com/rannd1nt/phaethon.git"
+"Bug Tracker" = "https://github.com/rannd1nt/phaethon/issues"

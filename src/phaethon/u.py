@@ -1,8 +1,8 @@
 """
-The Universal Unit Collection for the Chisa Framework.
+The Universal Unit Collection for the Phaethon Framework.
 
 This module provides access to all built-in dimensional units and base classes
-in Chisa. It aggregates all physical and digital dimensions into a single,
+in Phaethon. It aggregates all physical and digital dimensions into a single,
 cohesive interface for declarative modeling and scientific computing.
 
 Available Dimensional Domains:
@@ -22,7 +22,7 @@ Available Dimensional Domains:
     - `volume`     : 3D space (e.g., `CubicMeter`, `Liter`, `Gallon`)
 
 Example:
-    >>> from chisa import u
+    >>> from phaethon import u
     >>> speed = u.Meter(10) / u.Second(2)
     >>> print(speed)
     <MeterPerSecond: 5.0 m/s>

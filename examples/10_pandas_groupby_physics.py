@@ -1,12 +1,12 @@
 """
-Chisa Example 10: Pandas GroupBy Physics
+Phaethon Example 10: Pandas GroupBy Physics
 ----------------------------------------
-Integrating Chisa arrays directly with Pandas `GroupBy` to aggregate 
+Integrating Phaethon arrays directly with Pandas `GroupBy` to aggregate 
 daily IoT power production into monthly energy summaries.
 """
 
 import pandas as pd
-from chisa import u
+from phaethon import u
 
 print("--- SMART GRID IoT AGGREGATION ---")
 

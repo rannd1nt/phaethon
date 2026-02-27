@@ -1,5 +1,5 @@
 """
-Vectorized Math Wrapper for Chisa Axioms.
+Vectorized Math Wrapper for Phaethon Axioms.
 
 Polymorphically routes mathematical operations to NumPy (if handling arrays) 
 or the standard Python `math` library (if handling scalar floats/Decimals).

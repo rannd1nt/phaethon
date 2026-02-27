@@ -1,13 +1,13 @@
 """
-Chisa Example 07: Financial Billing Precision (.mag vs .exact)
+Phaethon Example 07: Financial Billing Precision (.mag vs .exact)
 --------------------------------------------------------------
 When converting units for financial billing, standard Python floats 
 suffer from rounding errors (e.g., 0.1 + 0.2 = 0.300000000004). 
-Chisa safely handles `decimal.Decimal` to preserve absolute financial integrity.
+Phaethon safely handles `decimal.Decimal` to preserve absolute financial integrity.
 """
 
 from decimal import Decimal
-from chisa import u
+from phaethon import u
 
 print("--- CLOUD STORAGE BILLING ENGINE ---")
 # A customer transfers exactly 0.1 Petabytes, 3 times.

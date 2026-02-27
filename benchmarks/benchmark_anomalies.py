@@ -1,14 +1,14 @@
 """
-Chisa Stress Test: The 1 Million Row Anomaly Benchmark
+Phaethon Stress Test: The 1 Million Row Anomaly Benchmark
 ------------------------------------------------------
-Testing the performance of Chisa's Vectorized Pre-Filtering on massive
+Testing the performance of Phaethon's Vectorized Pre-Filtering on massive
 datasets with high anomaly rates (values violating Absolute Zero).
 """
 
 import pandas as pd
 import numpy as np
-import chisa as cs
-from chisa import u
+import phaethon as ptn
+from phaethon import u
 import time
 
 # =========================================================================
@@ -36,10 +36,10 @@ print(df_dirty.head())
 # =========================================================================
 # 2. DEFINE THE STRICT SCHEMA
 # =========================================================================
-class ExtremeThermalSchema(cs.Schema):
+class ExtremeThermalSchema(ptn.Schema):
     # Target: Kelvin (Absolute Thermodynamic Baseline)
     # We set on_error='coerce' so extreme anomalies quietly become NaN
-    standardized_temp: u.Kelvin = cs.Field(
+    standardized_temp: u.Kelvin = ptn.Field(
         source="Sensor_Data", 
         parse_string=True, 
         on_error='coerce',
@@ -49,7 +49,7 @@ class ExtremeThermalSchema(cs.Schema):
 # =========================================================================
 # 3. EXECUTE & MEASURE
 # =========================================================================
-print(f"\n[{time.strftime('%H:%M:%S')}] COMMENCING CHISA VECTORIZED NORMALIZATION...")
+print(f"\n[{time.strftime('%H:%M:%S')}] COMMENCING PHAETHON VECTORIZED NORMALIZATION...")
 
 start_time = time.perf_counter()
 

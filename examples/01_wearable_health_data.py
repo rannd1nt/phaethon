@@ -1,5 +1,5 @@
 """
-Chisa Example 01: Wearable Health Data Schema
+Phaethon Example 01: Wearable Health Data Schema
 ---------------------------------------------
 This script demonstrates parsing messy strings from various smartwatches.
 It standardizes heart rates, body temperatures, and safely handles 
@@ -7,17 +7,17 @@ anomalies (like temperatures violating Absolute Zero).
 """
 
 import pandas as pd
-import chisa as cs
-from chisa import u
+import phaethon as ptn
+from phaethon import u
 
-class HealthDataSchema(cs.Schema):
-    heart_rate: u.BeatsPerMinute = cs.Field(
+class HealthDataSchema(ptn.Schema):
+    heart_rate: u.BeatsPerMinute = ptn.Field(
         source="HR_Raw", parse_string=True, on_error='coerce', min=0
     )
-    energy_burned: u.Kilocalorie = cs.Field(
+    energy_burned: u.Kilocalorie = ptn.Field(
         source="Calories", parse_string=True, on_error='coerce', round=2
     )
-    body_temp: u.Celsius = cs.Field(
+    body_temp: u.Celsius = ptn.Field(
         source="Temp", parse_string=True, on_error='coerce', round=1
     )
 
@@ -33,5 +33,5 @@ print(df_smartwatch)
 
 clean_df = HealthDataSchema.normalize(df_smartwatch, keep_unmapped=True)
 
-print("\n--- CHISA NORMALIZED HEALTH DATA ---")
+print("\n--- PHAETHON NORMALIZED HEALTH DATA ---")
 print(clean_df)

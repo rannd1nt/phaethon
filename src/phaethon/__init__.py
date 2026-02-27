@@ -1,13 +1,13 @@
 """
-Chisa: Unit-Safe Data Pipeline Schema
+Phaethon: Unit-Safe Data Pipeline Schema
 =====================================
 
-Chisa is a declarative schema validation and semantic data transformation 
+Phaethon is a declarative schema validation and semantic data transformation 
 tool designed for Data Engineers and Scientists. It normalizes messy 
 heterogeneous units and enforces physical integrity before your data hits 
 ML models or production databases.
 
-While standard schema tools only validate data types, Chisa validates 
+While standard schema tools only validate data types, Phaethon validates 
 physical reality using a strict, Metaclass-driven Object-Oriented physics engine.
 
 Core Features
@@ -28,8 +28,8 @@ axiom           : Decorators for deriving units and enforcing physical bounds.
 convert         : Fluent API entry point for inline conversions (scalars or arrays).
 """
 
-from chisa.exceptions import (
-    ChisaError, ConversionError, DimensionMismatchError, AxiomViolationError, AmbiguousUnitError,
+from phaethon.exceptions import (
+    PhaethonError, ConversionError, DimensionMismatchError, AxiomViolationError, AmbiguousUnitError,
     UnitNotFoundError, NormalizationError
 )
 
@@ -63,7 +63,7 @@ del _bootstrap_units
 
 from . import u
 
-__version__ = "0.2.0"
+__version__ = "0.2.2"
 __all__ = [
     "u",
     "baseof",
@@ -80,7 +80,7 @@ __all__ = [
     "const",
     "vmath",
     "BaseUnit",
-    "ChisaError",
+    "PhaethonError",
     "ConversionError",
     "DimensionMismatchError",
     "AxiomViolationError",

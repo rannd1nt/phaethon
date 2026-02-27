@@ -2,7 +2,7 @@
 Axiom Engine Module.
 
 Defines a set of physical laws, constraints, and mathematical modifiers 
-that dynamically govern the instantiation and conversion of Chisa units.
+that dynamically govern the instantiation and conversion of Phaethon units.
 It acts as a physics rule engine utilizing Python decorators.
 """
 
@@ -22,7 +22,7 @@ except ImportError:
 
 class CtxProxy:
     """
-    A declarative Context Variable proxy for Chisa Axioms.
+    A declarative Context Variable proxy for Phaethon Axioms.
     Allows developers to build mathematical formulas using standard Python operators.
     """
     def __init__(self, key: Optional[str] = None, default: Any = 0.0, _evaluator: Optional[Callable] = None):
@@ -401,7 +401,7 @@ def require(**dim_or_class: Union[str, Type]) -> Callable[[T_Func], T_Func]:
                             raise DimensionMismatchError(
                                 expected_dim=constraint, 
                                 received_dim=type(param_value).__name__,
-                                context=f"Argument '{param_name}' is not a valid Chisa unit object"
+                                context=f"Argument '{param_name}' is not a valid Phaethon unit object"
                             )
                         if param_value.dimension != constraint:
                             raise DimensionMismatchError(
@@ -424,7 +424,7 @@ def require(**dim_or_class: Union[str, Type]) -> Callable[[T_Func], T_Func]:
 def prepare(**unit_mappings: Type[Any]) -> Callable[[T_Func], T_Func]:
     """
     Pre-processes formula arguments for pure mathematical functions.
-    Automatically intercepts Chisa objects, converts them to the specified 
+    Automatically intercepts Phaethon objects, converts them to the specified 
     target unit, and extracts their raw magnitude (.mag) before execution.
     """
     def decorator(func: T_Func) -> T_Func:

@@ -56,7 +56,6 @@ class Gigawatt(PowerUnit):
 # 2. HORSEPOWER
 # =========================================================================
 # Mechanical Horsepower (Imperial): Defined as 550 foot-pounds per second.
-# Chisa dynamically synthesizes this to ~745.6998 Watts.
 @_axiom.derive(mul=[550, FootPound], div=[Second])
 class Horsepower(PowerUnit):
     symbol = "hp"
@@ -66,7 +65,6 @@ class Horsepower(PowerUnit):
     ]
 
 # Metric Horsepower (PS / Pferdestärke): Defined as 75 kgf·m per second.
-# Chisa dynamically synthesizes this to ~735.49875 Watts.
 @_axiom.derive(mul=[75, KilogramForce, Meter], div=[Second])
 class MetricHorsepower(PowerUnit):
     symbol = "PS"

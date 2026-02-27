@@ -1,23 +1,22 @@
 """
-Chisa Example 11: Scikit-Learn Custom Transformer
+Phaethon Example 11: Scikit-Learn Custom Transformer
 -------------------------------------------------
 Build a custom ML `BaseEstimator` that autonomously normalizes 
 heterogeneous unit arrays before training a Random Forest.
 """
 
 import pandas as pd
-import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
-import chisa as cs
-from chisa import u
+import phaethon as ptn
+from phaethon import u
 
-# 1. Define the physical contract using Chisa Schema
-class FeatureSchema(cs.Schema):
-    weight_kg: u.Kilogram = cs.Field(source="weight_raw", parse_string=True, on_error='coerce')
-    top_speed_ms: u.MeterPerSecond = cs.Field(source="speed_raw", parse_string=True, on_error='coerce')
+# 1. Define the physical contract using Phaethon Schema
+class FeatureSchema(ptn.Schema):
+    weight_kg: u.Kilogram = ptn.Field(source="weight_raw", parse_string=True, on_error='coerce')
+    top_speed_ms: u.MeterPerSecond = ptn.Field(source="speed_raw", parse_string=True, on_error='coerce')
 
 # 2. Wrap the Schema in a Scikit-Learn standard Transformer
-class ChisaNormalizer(BaseEstimator, TransformerMixin):
+class PhaethonNormalizer(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
         return self
         
@@ -37,7 +36,7 @@ print("--- RAW MACHINE LEARNING FEATURES ---")
 print(X_train)
 
 # In a real app, you would pass this to sklearn's make_pipeline()
-transformer = ChisaNormalizer()
+transformer = PhaethonNormalizer()
 X_clean = transformer.transform(X_train)
 
 print("\n--- ML-READY FEATURES (NORMALIZED) ---")

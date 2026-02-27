@@ -1,20 +1,20 @@
 """
-Chisa Example 03: Multi-Region Tariffs (Dynamic Columns)
+Phaethon Example 03: Multi-Region Tariffs (Dynamic Columns)
 --------------------------------------------------------
-When databases store values and units in separate columns, Chisa uses 
+When databases store values and units in separate columns, Phaethon uses 
 `unit_col` to dynamically resolve them row-by-row while enforcing bounds.
 """
 
 import pandas as pd
-import chisa as cs
-from chisa import u
+import phaethon as ptn
+from phaethon import u
 
-class TariffSchema(cs.Schema):
-    billable_weight: u.Kilogram = cs.Field(
+class TariffSchema(ptn.Schema):
+    billable_weight: u.Kilogram = ptn.Field(
         source="weight_val", unit_col="unit_code", on_error='coerce', round=3, min=0
     )
 
-    @cs.post_normalize
+    @ptn.post_normalize
     def calculate_global_tariff(cls, df):
         # Apply a flat $5.50 per kg shipping tariff
         df['shipping_cost_usd'] = df['billable_weight'] * 5.50

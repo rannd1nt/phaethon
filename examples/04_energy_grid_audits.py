@@ -1,20 +1,20 @@
 """
-Chisa Example 04: Energy Grid Audits (Lifecycle Hooks)
+Phaethon Example 04: Energy Grid Audits (Lifecycle Hooks)
 ------------------------------------------------------
 Inject your own business logic into the validation pipeline. 
 This script filters out inactive meters before standardizing raw energy data.
 """
 
 import pandas as pd
-import chisa as cs
-from chisa import u
+import phaethon as ptn
+from phaethon import u
 
-class EnergyAuditSchema(cs.Schema):
-    total_energy: u.KilowattHour = cs.Field(
+class EnergyAuditSchema(ptn.Schema):
+    total_energy: u.KilowattHour = ptn.Field(
         source="Raw_Usage", parse_string=True, on_error='coerce', round=2
     )
 
-    @cs.pre_normalize
+    @ptn.pre_normalize
     def filter_active_meters(cls, raw_df):
         print("[Hook] Filtering out INACTIVE meters...")
         return raw_df[raw_df['Status'] == 'ACTIVE'].copy()

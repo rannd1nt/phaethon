@@ -440,7 +440,7 @@ class _ConversionBuilder:
     def __str__(self) -> str:
         if not self._target_unit:
             src_name = getattr(self.source_unit, 'symbol', getattr(self.source_unit, '__name__', str(self.source_unit)))
-            return f"<Chisa Pending: {self._internal_val} {src_name} -> Call .to()>"
+            return f"<Phaethon Pending: {self._internal_val} {src_name} -> Call .to()>"
         return str(self.resolve())
 
     def __repr__(self) -> str:
@@ -449,11 +449,11 @@ class _ConversionBuilder:
         return f"<_ConversionBuilder: {self._internal_val} {src} -> {target}>"
 
 
-class _ChisaEngine:
+class _PhaethonEngine:
     """The core engine wrapper connecting the fluent API to the UnitRegistry."""
     def __init__(self, registry: UnitRegistry):
         """
-        Initializes the Chisa Engine.
+        Initializes the Phaethon Unit-Safe Data Pipeline Schema and Semantic Data Transformation Engine.
         
         Args:
             registry: The global UnitRegistry instance containing loaded unit definitions.
@@ -463,13 +463,13 @@ class _ChisaEngine:
     def convert(self, value: Any, unit: Union[Type['BaseUnit'], str]) -> _ConversionBuilder:
         return _ConversionBuilder(value, unit, self.registry)
     
-_default_engine = _ChisaEngine(registry=default_ureg)
+_default_engine = _PhaethonEngine(registry=default_ureg)
 
 def convert(value: Any, unit: Union[Type['BaseUnit'], str]) -> _ConversionBuilder:
     """
     Initializes a fluent conversion pipeline for physical and digital units.
 
-    This method serves as the primary entry point for the Chisa library. 
+    This method serves as the primary entry point for the Phaethon library. 
     It provides a chainable, intuitive, and highly precise conversion interface 
     driven by an underlying logic-driven Dimensional Algebra Engine. Supports 
     scalar values as well as iterables and NumPy arrays for vectorized calculations.

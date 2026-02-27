@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.2] - 2026-02-28
+
+### The Rebrand Hotfix & Documentation Overhaul
+- **refactor(core):** Completely purged all legacy "Chisa" zombie references from the internal codebase, class names (e.g., `PhaethonEngine`), docstrings, and print statements.
+- **docs(readme):** Updated the main `README.md` and `advanced_physics.md` to fully reflect the new Phaethon namespace and `ptn` import alias conventions.
+- **docs(examples):** Renamed and refactored all Google Colab interactive notebooks and Python scripts in the `examples/` directory to utilize the new architecture.
+- **ci(actions):** Introduced fully automated PyPI Trusted Publishing (OIDC) via GitHub Actions (`publish.yml`).
+
+---
+
+## [0.2.1] - 2026-02-27
+
+### The Namespace Takeover
+- **chore(rebrand):** The package has been globally renamed to `phaethon` on PyPI. The legacy `chisa` package has been deprecated. All current and future development, including the vectorization engine and declarative schemas, will exclusively continue under the Phaethon namespace.
+- **feat(alias):** Established `ptn` as the official, standardized import alias (e.g., `import phaethon as ptn`). This explicitly prevents namespace collisions and ensures rapid, phonetic developer typing without overlapping with existing tools like PyTorch (`pt`) or Matplotlib (`plt`).
+
+### Core Engine Continuity
+- **refactor(migration):** Successfully migrated 100% of the core Axiom Engine, Metaclass Algebra, and Vectorization logic from the v0.2.0 build into the new Phaethon core. All DataFrame normalization speeds (~0.046 seconds per 100k rows) remain perfectly intact.
+
+---
+
 ## [0.2.0] - 2026-02-26
 
 ### Evolution: Unit-Safe Data Pipeline Schema

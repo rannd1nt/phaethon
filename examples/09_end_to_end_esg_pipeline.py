@@ -1,16 +1,16 @@
 """
-Chisa Example 09: End-to-End ESG Pipeline
+Phaethon Example 09: End-to-End ESG Pipeline
 -----------------------------------------
-The Grand Unified Theory of Chisa. This script demonstrates how to:
+The Grand Unified Theory of Phaethon. This script demonstrates how to:
 1. Synthesize a custom dimension (Carbon Intensity) from scratch.
 2. Clean messy Pandas data into that custom dimension using Schema.
 3. Protect business logic using @require and @prepare.
 """
 
 import pandas as pd
-import chisa as cs
-from chisa import axiom, u
-from chisa.core.base import BaseUnit
+import phaethon as ptn
+from phaethon import axiom, u
+from phaethon.core.base import BaseUnit
 
 # =========================================================================
 # STAGE 1: SYNTHESIS (Defining New Physical Laws)
@@ -47,9 +47,9 @@ def calculate_carbon_tax(intensity: float, energy_produced_mwh: float):
 # =========================================================================
 # STAGE 3: DATA PIPELINE (Schema Integration)
 # =========================================================================
-class FactoryESGSchema(cs.Schema):
+class FactoryESGSchema(ptn.Schema):
     # Use our custom class directly in Type Hinting!
-    emission_rate: KgCO2PerKWh = cs.Field(
+    emission_rate: KgCO2PerKWh = ptn.Field(
         source="Raw_Sensor", 
         parse_string=True, 
         on_error='coerce', 
@@ -65,7 +65,7 @@ df_raw = pd.DataFrame({
 })
 print(df_raw)
 
-print("\n--- 2. CHISA NORMALIZED ESG DATA ---")
+print("\n--- 2. Phaethon NORMALIZED ESG DATA ---")
 # The Schema reads the Registry, finds our custom unit, and parses the text
 clean_df = FactoryESGSchema.normalize(df_raw, keep_unmapped=True, drop_raw=True)
 print(clean_df)

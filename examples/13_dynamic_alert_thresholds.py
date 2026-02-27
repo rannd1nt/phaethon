@@ -1,20 +1,20 @@
 """
-Chisa Example 13: Dynamic Alert Thresholds (IoT Streaming)
+Phaethon Example 13: Dynamic Alert Thresholds (IoT Streaming)
 ----------------------------------------------------------
 In real industrial IoT, safety limits aren't always static.
-This script uses a Chisa Schema to normalize temperatures, then applies 
+This script uses a Phaethon Schema to normalize temperatures, then applies 
 dynamic safety thresholds based on the machine's active cooling mode.
 """
 
 import pandas as pd
-import chisa as cs
-from chisa import u
+import phaethon as ptn
+from phaethon import u
 
-class NuclearReactorSchema(cs.Schema):
+class NuclearReactorSchema(ptn.Schema):
     # Standardize all incoming thermal telemetry to strict Celsius
-    core_temp: u.Celsius = cs.Field(source="Temp_Raw", parse_string=True, on_error='coerce', round=1)
+    core_temp: u.Celsius = ptn.Field(source="Temp_Raw", parse_string=True, on_error='coerce', round=1)
 
-    @cs.post_normalize
+    @ptn.post_normalize
     def dynamic_safety_check(cls, df):
         print("[Security Hook] Evaluating dynamic thermal bounds...")
         # Rule 1: If Cooling is OFF, max temp is 100 C
