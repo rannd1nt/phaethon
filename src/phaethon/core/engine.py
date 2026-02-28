@@ -54,7 +54,7 @@ class _ConversionBuilder:
         
         self._options = {
             "mode": "float64",
-            "prec": 9,
+            "prec": None,
             "roundin": "half_even",
             "output": "raw", 
             "sigfigs": None,
@@ -273,7 +273,10 @@ class _ConversionBuilder:
                 else:
                     final_value = converted_value
             else:
-                final_value = round(converted_value, prec)
+                if prec is not None:
+                    final_value = round(converted_value, prec)
+                else:
+                    final_value = float(converted_value)
         else:
             raise ConversionError(f"Computation mode '{mode}' is not recognized. Use 'decimal' or 'float64'.")
 
@@ -372,8 +375,10 @@ class _ConversionBuilder:
             if sigfigs and isinstance(final_value, Decimal):
                 decimal_places = max(sigfigs - (final_value.adjusted() + 1), 0)
                 val_str = f"{final_value:.{decimal_places}f}"
+            elif prec is not None:
+                val_str = format(final_value, f'.{prec}f')
             else:
-                val_str = format(final_value, 'f')
+                val_str = str(final_value)
 
         if not scinote and '.' in val_str:
             val_str = val_str.rstrip('0')

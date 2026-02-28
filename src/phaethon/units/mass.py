@@ -29,7 +29,7 @@ class Kilogram(MassUnit):
 
 class Gram(MassUnit):
     symbol = "g"
-    aliases = ["gram", "grams", "gm", "gms", "G", "gr"]
+    aliases = ["gram", "grams", "gm", "gms", "G"]
     base_multiplier = 1e-3
 
 class Milligram(MassUnit):
@@ -184,7 +184,7 @@ class AtomicMassUnit(MassUnit):
     base_multiplier = _const.ATOMIC_MASS_UNIT_KG
 
 class PlanckMass(MassUnit):
-    symbol = "m_p"
+    symbol = "m_P"
     aliases = ["planckmass", "planck-mass", "planck mass"]
     base_multiplier = _const.PLANCK_MASS_KG
 

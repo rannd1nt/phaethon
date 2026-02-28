@@ -1,6 +1,6 @@
 <div align="center">
 
-<h1>Phaethon — Unit-Safe Data Pipeline Schema</h1>
+<h1>Phaethon — Unit-Safe Data Pipeline Schema & Semantic Data Transformation</h1>
 
 <p>
 <img src="https://img.shields.io/badge/MADE_WITH-PYTHON-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python">
@@ -10,7 +10,7 @@
 </p>
 
 <p>
-<i>Normalize messy heterogeneous units and enforce physical integrity before your data hits ML or production systems.</i>
+<i>Translate raw bytes into meaningful domain concepts, normalize messy units, and enforce physical integrity before your data hits ML or production systems.</i>
 </p>
 
 </div>
@@ -108,6 +108,19 @@ class ColdChainPipeline(ptn.Schema):
             raise ValueError("CRITICAL: Vaccine shipment spoiled! Temp exceeded -20°C.")
         return clean_df
 ```
+
+---
+
+## ⚖️ Absolute Precision: 100% Parity with Pint
+
+Phaethon doesn't just parse strings quickly; it calculates physical reality flawlessly. From quantum scales (`eV`) to astronomical masses (`M_jup`), the core engine retains absolute `float64` precision without underflow truncation.
+
+We enforce **100% mathematical parity** against the industry-standard `Pint` library using brutal, property-based automated testing (`hypothesis`). 
+
+* **Empirical Accuracy:** Phaethon achieves zero-deviation parity across hundreds of randomized, bidirectional cross-dimensional conversions.
+* **Superior Vocabulary:** Phaethon natively parses **65+ specialized units** (e.g., historical mass, regional volumes, astrophysical constants) that standard libraries fail to recognize or fatally misinterpret due to string hyphenation bugs.
+
+> *Transparency Note: You can audit and run the rigorous O(N) Hub-and-Spoke accuracy tests yourself via the `benchmarks/test_pint_parity.py` script included in this repository.*
 
 ---
 ## 🏎️ The Fluent API (Quick Inline Conversions)

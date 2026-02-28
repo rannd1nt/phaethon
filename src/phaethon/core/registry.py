@@ -1,6 +1,7 @@
-from typing import Dict, List, Type, Optional, Set, Any, Union
+from typing import Dict, List, Type, Optional, Set, Any, Union, TYPE_CHECKING, overload, Literal
 from ..exceptions import UnitNotFoundError, DimensionMismatchError, AmbiguousUnitError
-import numpy as np
+if TYPE_CHECKING:
+    from .base import BaseUnit
 
 _DIMENSIONAL_DNA = {
     frozenset({('length', 1), ('time', -1)}): 'speed',
@@ -93,7 +94,7 @@ class UnitRegistry:
             
         return candidates[0]
 
-    def baseof(self, dimension: str) -> Type:
+    def baseof(self, dimension: str) -> Type['BaseUnit']:
         dimension = dimension.lower().strip()
         for candidates in self._units.values():
             for cls in candidates:
@@ -144,7 +145,7 @@ class UnitRegistry:
 default_ureg = UnitRegistry()
 
 
-def baseof(dimension: str) -> Type:
+def baseof(dimension: str) -> Type['BaseUnit']:
     """
     Retrieves the base unit class (the absolute reference point) for a dimension.
     Args:
@@ -162,17 +163,19 @@ def dims() -> List[str]:
     """
     return default_ureg.dims()
 
-def unitsin(dimension: str, ascls: bool = False) -> List[Union[str, Type]]:
+@overload
+def unitsin(dimension: str, ascls: Literal[False] = ...) -> List[str]: ...
+
+@overload
+def unitsin(dimension: str, ascls: Literal[True]) -> List[Type['BaseUnit']]: ...
+
+def unitsin(dimension: str, ascls: bool = False) -> Union[List[str], List[Type['BaseUnit']]]:
     """
     Retrieves units associated with a specific dimension.
     
     Args:
         dimension: The dimension name (e.g., 'mass').
         ascls: If True, returns the actual Class objects instead of strings.
-        
-    
-    >>> phaethon.unitsin('mass') -> ['g', 'kg', 'lb', ...]
-    >>> phaethon.unitsin('mass', ascls=True) -> [<class 'Gram'>, <class 'Kilogram'>, ...]
     """
     return default_ureg.unitsin(dimension, ascls=ascls)
 

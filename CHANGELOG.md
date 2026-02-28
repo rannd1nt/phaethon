@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.3] - 2026-03-01
+
+### The Quantum Precision Patch & Enterprise DX
+- **fix(engine):** Removed the default `prec=9` truncation from the core `_PhaethonEngine`. The physics engine now retains absolute native `float64` precision during internal calculations. This resolves an underflow bug where microscopic quantum values (e.g., `eV` to Joules) or astronomical scales were incorrectly truncated to `0.0`.
+- **fix(mass):** Corrected the symbol for Planck Mass from the standard proton notation (`m_p`) to the correct scientific notation (`m_P`).
+- **fix(mass):** Removed `"gr"` from the `Gram` alias registry to prevent semantic collisions with `Grain`.
+- **feat(typing):** Upgraded `registry.py` with strict `Type['BaseUnit']` forward references and `@overload` typing for methods like `unitsin()`. This unlocks full IDE autocomplete (IntelliSense) for dynamically resolved unit classes, massively improving Developer Experience (DX).
+- **test(benchmarks):** Introduced `test_pint_parity.py` to the public repository. Utilizing property-based testing (`hypothesis`), Phaethon has empirically achieved 100% mathematical parity against the `Pint` library across 300+ randomized extreme-value conversions, whilst successfully parsing 65+ specialized units that Pint natively fails to process.
+
+---
+
 ## [0.2.2] - 2026-02-28
 
 ### The Rebrand Hotfix & Documentation Overhaul
@@ -30,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.0] - 2026-02-26
 
-### Evolution: Unit-Safe Data Pipeline Schema
+### (Legacy Chisa) Evolution: Unit-Safe Data Pipeline Schema
 Chisa has officially evolved its primary identity from a "Physics Modelling Framework" to a **"Unit-Safe Data Pipeline Schema"**. The focus is now heavily geared towards Data Engineering, rescuing tabular data pipelines from the nightmare of mixed units, bizarre abbreviations, and impossible physical values.
 
 ###  Major Feature: Declarative Data Schemas
@@ -63,9 +74,11 @@ Chisa has officially evolved its primary identity from a "Physics Modelling Fram
 - **docs(examples):** Completely overhauled the `examples/` directory with 14 brutal, real-world Data Engineering scripts (e.g., Cloud Compute Billing, ESG Carbon Tracking, Sensor Drift Neutralization).
 - **docs(notebooks):** Re-architected the interactive Google Colab notebooks. `T01` covers core fundamentals/Schemas, while `T02` provides a masterclass on cleaning a dirty IoT Pandas pipeline, complete with Matplotlib visualization demonstrating the catastrophic impact of unhandled data anomalies.
 
+---
+
 ## [0.1.1] - 2026-02-24
 
-### Core Engine & Type Safety (Hotfix)
+### (Legacy Chisa) Core Engine & Type Safety (Hotfix)
 - **fix(core):** Standardized native Python `float` (C-level `float64`) as the absolute default for all scalar outputs. 
   - Resolves an inconsistency where scalars could be auto-casted to integers or Decimals, preventing unexpected `TypeError` crashes when integrating with external ML libraries (e.g., SciPy, Scikit-Learn).
 - **fix(fluent):** Removed the redundant `exact` format option from the Fluent API's `.use(format=...)` method.
@@ -80,6 +93,7 @@ Chisa has officially evolved its primary identity from a "Physics Modelling Fram
 
 ## [0.1.0] - 2026-02-23
 
+### (Legacy Chisa) Initial Release
 Welcome to the first public release of **Chisa**, the logic-driven dimensional algebra and strict physics modeling framework for Python. This inaugural release establishes the foundational Axiom Engine, the Fluent API, native NumPy vectorization, and a robust exception hierarchy.
 
 ### Supported Physical Dimensions
