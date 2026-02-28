@@ -1,8 +1,8 @@
 > ⚠️ **ARCHIVAL NOTICE**
 > 
-> This branch contains the legacy source code for **Unitflex**, the early predecessor to the Chisa framework. This project is no longer actively maintained and is preserved here purely for historical and archival purposes.
+> This branch contains the legacy source code for **Unitflex**, the early predecessor to the Phaethon. This project is no longer actively maintained and is preserved here purely for historical and archival purposes.
 > 
-> 👉 **Looking for the active project?** Please visit the [`main branch`](https://github.com/rannd1nt/chisa/tree/main) to explore **Chisa**, the completely re-architected, NumPy-vectorized dimensional algebra and physics modeling framework.
+> 👉 **Looking for the active project?** Please visit the [`main branch`](https://github.com/rannd1nt/phaethon/tree/main) to explore **Phaethon**, the completely re-architected, Unit-Aware Data Pipeline Schem and Semantic Data Transformation with NumPy-vectorized dimensional algebra engine.
 
 # What is Unitflex? 📦
 
