@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "phaethon"
-version = "0.2.2"
+version = "0.2.3"
 description = "Unit-Safe Data Pipeline Schema and Semantic Data Transformation"
 readme = "README.md"
 requires-python = ">=3.8"
