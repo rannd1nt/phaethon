@@ -1,31 +1,23 @@
 """
-Phaethon: Unit-Safe Data Pipeline Schema
-=====================================
+Phaethon: Dimensional Data Pipelines & Semantic Data Transformations
+=============================================================
 
-Phaethon is a declarative schema validation and semantic data transformation 
-tool designed for Data Engineers and Scientists. It normalizes messy 
-heterogeneous units and enforces physical integrity before your data hits 
-ML models or production databases.
+Phaethon is an enterprise-grade schema validation and semantic engine for 
+Data Engineers and Scientists. It enforces absolute physical laws, normalizes 
+heterogeneous units, and translates continuous physical data into discrete 
+business logic before it hits your ML models or production databases.
 
 While standard schema tools only validate data types, Phaethon validates 
-physical reality using a strict, Metaclass-driven Object-Oriented physics engine.
+physical reality using a strict, Metaclass-driven physics and semantic engine.
 
-Core Features
--------------
-* Declarative Schemas : Clean and normalize mixed-unit Pandas DataFrames.
-* Vectorized Engine   : High-speed, array-safe transformations using NumPy.
-* Axiom Engine        : Build custom dimensions and enforce physical laws.
-* Pipeline Hooks      : Inject domain logic via pre/post normalization hooks.
-* Fluent API          : Quick, chainable conversions supporting both string 
-                        aliases ('km') and explicit unit classes (u.Kilometer).
-
-Main Exported Components
-------------------------
-Schema          : Base class for defining declarative data pipelines.
-Field           : Defines column-level unit targets, bounds, and parsing rules.
-u               : Namespace for all built-in physical dimensions and units.
-axiom           : Decorators for deriving units and enforcing physical bounds.
-convert         : Fluent API entry point for inline conversions (scalars or arrays).
+Core Capabilities
+-----------------
+* High-Performance Backends : Native Rust-powered Polars and vectorized Pandas support.
+* Dimensional Schemas       : Clean mixed-unit "Excel Hell" data automatically.
+* Semantic Translations     : Map raw physical values to discrete states (e.g., 13.5V -> "OVERCHARGED").
+* Declarative Ontologies    : RapidFuzz integration for typo correction on categorical data.
+* ML Feature Engineering    : Synthesize cross-column features via dimensional algebra.
+* Dynamic Contexts          : Thread-safe environmental variables for real-time FinTech & Physics.
 """
 
 from phaethon.exceptions import (
@@ -34,7 +26,9 @@ from phaethon.exceptions import (
 )
 
 from .core.registry import baseof, dims, unitsin, dimof
-from .core.schema import Schema, Field, post_normalize, pre_normalize
+from .core.schema import Schema, Field, DerivedField, post_normalize, pre_normalize, col
+from .core.semantics import SemanticState, Ontology, Concept, Condition
+from .core.config import config, using
 from .core import axioms as axiom
 from .core import constants as const
 from .core import vmath
@@ -51,7 +45,8 @@ def _bootstrap_units() -> None:
     
     _core_dimensions = [
         "length", "mass", "pressure", "time", "speed", "temperature", "volume",
-        "data", "force", "energy", "power", "area", "density", "frequency"
+        "data", "force", "energy", "power", "area", "density", "frequency", 
+        "currency", "electromagnetism", "photometry"
     ]
     
     for dim in _core_dimensions:
@@ -63,7 +58,8 @@ del _bootstrap_units
 
 from . import u
 
-__version__ = "0.2.3"
+__version__ = "0.3.0"
+
 __all__ = [
     "u",
     "baseof",
@@ -72,9 +68,17 @@ __all__ = [
     "dimof",
     "Schema",
     "Field",
+    "DerivedField",
+    "SemanticState",
+    "Ontology",
+    "Concept",
+    "Condition",
     "post_normalize",
     "pre_normalize",
+    "col",
     "convert",
+    "config",
+    "using",
     "axiom",
     "C",
     "const",

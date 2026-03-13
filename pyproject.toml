@@ -4,25 +4,30 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "phaethon"
-version = "0.2.3"
-description = "Unit-Safe Data Pipeline Schema and Semantic Data Transformation"
+version = "0.3.0"
+description = "Dimensional Data Pipelines & Semantic Data Transformations"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [
     {name = "Zahraan Dzakii Tsaqiif", email = "zahraandzakiits@gmail.com"}
 ]
 
 keywords = [
-    "data engineering", "schema validation", "pandas", 
+    "data engineering", "schema validation", "pandas", "polars",
     "physics", "dimensional analysis", "data pipeline",
-    "numpy", "unit conversion", "machine learning"
+    "numpy", "unit conversion", "machine learning", "semantic"
 ]
 
 dependencies = [
     "numpy>=1.26.0",
-    "pandas>=2.0.0"
+    "pandas>=2.0.0",
+    "rapidfuzz>=3.0.0"
 ]
+
+[project.optional-dependencies]
+polars = ["polars>=1.0.0"]
+all = ["polars>=1.0.0"]
 
 classifiers = [
     # Development Status
@@ -47,12 +52,11 @@ classifiers = [
     
     # Supported Python Versions
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13"
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14"
 ]
 
 [tool.setuptools.packages.find]

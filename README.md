@@ -1,31 +1,30 @@
 <div align="center">
 
-<h1>Phaethon — Unit-Safe Data Pipeline Schema & Semantic Data Transformation</h1>
+<h1>Phaethon — The Dimensional & Semantic Data Engineering Framework</h1>
 
 <p>
 <img src="https://img.shields.io/badge/MADE_WITH-PYTHON-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python">
 <img src="https://img.shields.io/badge/INTEGRATION-NUMPY-013243?style=for-the-badge&logo=numpy&logoColor=white" alt="NumPy">
 <img src="https://img.shields.io/badge/INTEGRATION-PANDAS-150458?style=for-the-badge&logo=pandas&logoColor=white" alt="Pandas">
+<img src="https://img.shields.io/badge/INTEGRATION-POLARS-blue?style=for-the-badge&logo=polars&logoColor=white" alt="Polars">
 <img src="https://img.shields.io/badge/LICENSE-MIT-red?style=for-the-badge" alt="License">
 </p>
 
 <p>
-<i>Translate raw bytes into meaningful domain concepts, normalize messy units, and enforce physical integrity before your data hits ML or production systems.</i>
+<i>Enforce physical laws, translate semantic concepts, and normalize messy units before your data hits ML or production systems.</i>
 </p>
 
 </div>
 
-**Phaethon** is a declarative schema validation and semantic data transformation tool designed for Data Engineers. It rescues your data pipelines from the nightmare of mixed units, bizarre abbreviations, and impossible physical values.
+**Phaethon** is a declarative schema validation and semantic data transformation tool designed for Data Engineers. It rescues your data pipelines from the nightmare of mixed units, bizarre abbreviations, typo-ridden categorical data, and impossible physical values.
 
-While standard schema tools (like Pydantic or Pandera) only validate *data types* (e.g., ensuring a value is a `float`), Phaethon validates **physical reality**. If you are ingesting IoT sensor streams, parsing messy logistics CSVs, or processing manufacturing Excel sheets, Phaethon ensures your numbers obey the laws of physics before they enter your database.
+While standard schema tools (like Pydantic or Pandera) only validate *data types* (e.g., ensuring a value is a `float`), Phaethon validates **physical reality and semantic intent**. Whether you are ingesting IoT sensor streams, parsing messy logistics CSVs, or processing multi-currency global transactions, Phaethon ensures your data obeys the laws of physics and domain logic before it enters your database.
 
 ---
 
 ## 🚀 The Nightmare vs. The Phaethon Way
 
-Real-world data is rarely clean. A single dataset might contain `"1.5e3 lbs"`, `"  -5 kg  "`, missing values, and typos like `"20 pallets"`. Standard pandas workflows force you to write fragile regex and manual `if-else` blocks. 
-
-
+Real-world data is rarely clean. A single dataset might contain `"1.5e3 lbs"`, `"  -5 kg  "`, missing values, and typos like `"20 pallets"`. Standard Pandas/Polars workflows force you to write fragile regex and manual `if-else` blocks. 
 
 **Phaethon solves this declaratively.**
 
@@ -40,7 +39,6 @@ class GlobalFreightSchema(ptn.Schema):
         parse_string=True, 
         on_error='coerce', 
         round=2,
-        min=0 # Axiom Bound: Cargo mass cannot be negative!
     )
     cargo_volume: u.CubicMeter = ptn.Field(
         source="Volume_Log", 
@@ -62,31 +60,95 @@ Phaethon cleanly parses `"1.5e3 lbs"` to `680.39 kg`, accurately converts `"cu_f
 
 ---
 
-## 🧠 Smart Error Intelligence
+## 🤖 Semantic Intelligence & ML Feature Extraction
 
-Data pipelines shouldn't just crash; they should tell you *how* to fix them. If you enforce strict data rules (`on_error='raise'`), Phaethon provides unparalleled Developer Experience (DX) for debugging massive DataFrames:
+Stop writing endless `.map()` dictionaries to clean up categorical data. Phaethon introduces declarative **Ontologies** and **Semantic States** that use C++ string metrics (RapidFuzz) to autocorrect typos, classify continuous numbers into discrete categories, and synthesize entirely new ML features on the fly.
 
-```text
-NormalizationError: Normalization failed for field 'gross_weight' at index [2].
-   ► Issue              : Unrecognized unit 'pallets'
-   ► Expected Dimension : mass
-   ► Raw Value Sample   : '20 pallets'
-   ► Suggestion         : Fix the raw data, register the unit, or set Field(on_error='coerce').
+```python
+# 1. Map dirty strings to clean Categories with Auto-Correction
+class DeviceType(ptn.Ontology):
+    SENSOR = ptn.Concept(aliases=["sn", "sensr", "sensor_node"])
+    GATEWAY = ptn.Concept(aliases=["gw", "hub"])
+
+# 2. Classify physical numbers into ML Logic, ignoring unit chaos!
+class PowerStatus(ptn.SemanticState):
+    LOW = ptn.Condition(u.Watt, max=10.0)
+    NORMAL = ptn.Condition(u.Watt, min=10.01, max=50.0)
+    HIGH = ptn.Condition(u.Watt, min=50.01)
+
+class IoTEdgeSchema(ptn.Schema):
+    device: DeviceType = ptn.Field("raw_dev", fuzzy_match=True, impute_by="UNKNOWN")
+    
+    # Extract features safely across domains
+    voltage: u.Volt = ptn.Field("raw_v", min=0)
+    current: u.Ampere = ptn.Field("raw_a")
+    
+    # Synthesize Cross-Column ML Features using Dimensional Algebra
+    power: u.Watt = ptn.DerivedField(formula=ptn.col("voltage") * ptn.col("current"))
+    
+    # Classify the synthesized/raw power into a Semantic State
+    status: PowerStatus = ptn.Field("raw_power", parse_string=True)
+
+df_iot = pd.DataFrame({
+    "raw_dev": ["Sensr", "Gate way", "Alien Tech"],
+    "raw_v": [220, 230, 110],
+    "raw_a": [1.5, 2.0, 1.2],
+    "raw_power": ["5 W", "15000 mW", "0.06 kW"]
+})
+
+clean_iot_df = IoTEdgeSchema.normalize(df_iot)
 ```
 
 ---
 
-## ⚡ Performance: The Vectorization Advantage
+## 💸 Global FinTech & Econo-Physics
 
-Standard unit libraries (like Pint) struggle with **heterogeneous strings** (mixed units in the same column), forcing developers to use slow `pandas.apply()` loops to parse row-by-row. Phaethon bypasses this entirely using native NumPy vectorization and Pandas Boolean masking.
+Phaethon treats Currency as a highly volatile physical dimension. You can inject real-time exchange rates (context) seamlessly without altering the core pipeline. It inherently understands inverse routing (e.g., automatically flipping `usd_to_idr` to calculate `idr_to_usd`).
 
-When stress-tested against 100,000 rows of heterogeneous data (e.g., a mix of `lbs` and `oz` targeting `kg`):
-* *Traditional (Pint + Pandas Apply):* ~14.71 seconds
-* *Phaethon (Vectorized Schema):* **~0.046 seconds** *(>316x Faster)*
+```python
+class ECommerceReport(ptn.Schema):
+    revenue_idr: u.IndonesianRupiah = ptn.Field("sales", parse_string=True)
 
-> *Transparency Note: You can reproduce this 99.6% reduction in latency using the `benchmarks/benchmark_vs_pint.py` script included in this repository.*
+df_sales = pd.DataFrame({
+    "sales": ["100 EUR", "1500 JPY", "5 USD", "50000 IDR"]
+})
+
+# Inject Live FX Rates (Direct & Inverse quotes are handled automatically)
+live_rates = {
+    'eur_to_usd': 1.10,     
+    'usd_to_jpy': 150.0,    
+    'usd_to_idr': 16000.0   
+}
+
+with ptn.using(context=live_rates):
+    clean_sales_df = ECommerceReport.normalize(df_sales)
+```
 
 ---
+
+## ⚡ Performance: Native Pandas & Polars Backends
+
+Standard unit libraries struggle with **heterogeneous strings**, forcing slow `pandas.apply()` loops. Phaethon bypasses this using a backend-agnostic architecture natively detecting your DataFrame type.
+
+Both the Pandas Vectorized Engine and the Polars Lazy Engine can process and validate **1,000,000 rows of highly unstructured, dirty physics strings in ~3 seconds**. 
+
+*(Note: Polars currently relies on a `map_batches` NumPy bridge to evaluate Phaethon's strict Metaclass Object geometry, neutralizing its inherent Rust multi-threading speed. Achieving true zero-copy execution without hitting the Python GIL is our top priority for v0.4.0—see Roadmap).*
+
+---
+
+## ⚖️ Absolute Precision: 100% Parity with Pint
+
+Phaethon doesn't just parse strings quickly; it calculates physical reality flawlessly. From quantum scales (`eV`) to astronomical masses (`M_jup`), the core engine retains absolute `float64` precision without underflow truncation.
+
+We enforce **100% mathematical parity** against the industry-standard `Pint` library using brutal, property-based automated testing (`hypothesis`). 
+
+* **Empirical Accuracy:** Phaethon achieves zero-deviation parity across hundreds of randomized, bidirectional cross-dimensional conversions.
+* **Superior Vocabulary:** Phaethon natively parses **65+ specialized units** (e.g., historical mass, regional volumes, astrophysical constants) that standard libraries fail to recognize or fatally misinterpret due to string hyphenation bugs.
+
+> *Transparency Note: You can audit and run the rigorous O(N) Hub-and-Spoke accuracy tests yourself via the `benchmarks/test_pint_parity.py` script included in this repository.*
+
+---
+
 
 ## 🪝 Pipeline Hooks (Inversion of Control)
 
@@ -111,37 +173,32 @@ class ColdChainPipeline(ptn.Schema):
 
 ---
 
-## ⚖️ Absolute Precision: 100% Parity with Pint
+## 🏎️ The Fluent API (Extremely Versatile Conversions)
 
-Phaethon doesn't just parse strings quickly; it calculates physical reality flawlessly. From quantum scales (`eV`) to astronomical masses (`M_jup`), the core engine retains absolute `float64` precision without underflow truncation.
-
-We enforce **100% mathematical parity** against the industry-standard `Pint` library using brutal, property-based automated testing (`hypothesis`). 
-
-* **Empirical Accuracy:** Phaethon achieves zero-deviation parity across hundreds of randomized, bidirectional cross-dimensional conversions.
-* **Superior Vocabulary:** Phaethon natively parses **65+ specialized units** (e.g., historical mass, regional volumes, astrophysical constants) that standard libraries fail to recognize or fatally misinterpret due to string hyphenation bugs.
-
-> *Transparency Note: You can audit and run the rigorous O(N) Hub-and-Spoke accuracy tests yourself via the `benchmarks/test_pint_parity.py` script included in this repository.*
-
----
-## 🏎️ The Fluent API (Quick Inline Conversions)
-
-For simple scripts, logging, or UI components where you don't need full declarative schemas, Phaethon provides a highly readable, chainable Fluent API.
+ The Fluent API (`ptn.convert`) is not just for scalars. It intelligently digests raw floats, N-Dimensional NumPy Arrays, Python Lists, and even instantiated `BaseUnit` objects, returning perfectly typed outputs (`dtype`, `out`) for strict IDE intelligence.
 
 ```python
+import numpy as np
 import phaethon as ptn
+from phaethon import u
 
-# Simple scalar conversion
-speed = ptn.convert(120, 'km/h').to('m/s').resolve()
-print(speed) # 33.333333333
+# 1. High-Speed Vectorized Arrays (Returns np.ndarray)
+arr_in = np.random.uniform(10, 100, 100_000)
+arr_out = ptn.convert(arr_in, 'km/h').to('m/s').use(out='raw').resolve()
 
-# Powerful cosmetic formatting for logs
-text = ptn.convert(1000, 'm').to('cm').use(format='verbose', delim=True).resolve()
-print(text) # "1,000 m = 100,000 cm"
+# 2. BaseUnit Object Iterables (Returns List[str])
+obj_list = [u.Celsius(0), u.Celsius(100)]
+str_list = ptn.convert(obj_list).to('F').use(out='verbose', delim=True).resolve()
+# Output: ['0 °C = 32 °F', '100 °C = 212 °F']
+
+# 3. High-Precision Audits (Returns Python Decimal)
+exact_val = ptn.convert("1.5", "kg").to("g").use(dtype='decimal').resolve()
 ```
+
 ---
 
 ## 📚 Examples & Tutorials
-
+> ⚠️ **Documentation Notice:** The interactive notebooks and Python scripts in the `examples/` directory are currently optimized for Phaethon **v0.2.3**. While the core engine fundamentals remain strictly identical, newer v0.3.0 architectural leaps are not yet reflected in these tutorials. A massive overhaul of all educational materials is scheduled for the upcoming **v0.4.0 (SciML Integration)** release.
 To help you integrate Phaethon into your existing workflows, we provide a comprehensive suite of examples in the `examples/` directory.
 
 ### Interactive Crash Course (Google Colab)
@@ -177,8 +234,8 @@ For detailed, standalone script implementations, explore our `examples/` directo
     * `13_dynamic_alert_thresholds.py`: Simulating an IoT streaming pipeline where safety limits (`@axiom.bound`) change dynamically based on the machine's operating context.
     * `14_cloud_compute_costs.py`: Utilizing extreme Metaclass algebra (`Currency / (RAM * Time)`) to synthesize and calculate abstract Server Compute billing rates ($ / GB-Hour).
 
----
 
+---
 ## 🔬 The Engine: Explicit Dimensional Algebra
 
 While Phaethon's Schema is built for Data Engineering pipelines, underneath it lies a highly strict, Metaclass-driven Object-Oriented physics engine. If you are a Data Scientist, you can extract your clean data into Phaethon Arrays for cross-dimensional mathematics with zero memory leaks.
@@ -204,22 +261,26 @@ Force_kN_array = Force.to(u.Newton * 1000).mag
 ```bash
 pip install phaethon
 ```
+**With Polars Backend Support:**
+```bash
+pip install phaethon[polars]
+```
+
 **Requirements:**
-- Python 3.8+
+- Python 3.10+
 - numpy >= 1.26.0
 - pandas >= 2.0.0
+- rapidfuzz >= 3.0.0
  
 ---
 
-## 🛠 Roadmap & Future Horizons
-Phaethon is actively evolving to become the universal dimensional layer for Data Engineering and ML pipelines. Our upcoming milestones include:
+## 🛠 Roadmap & Future Horizons (v0.4.0+)
 
-- **Physics-Aware Imputation (`impute_by`):** Rescuing `NaN` rows caused by sensor dropouts using statistical means/medians calculated *after* homogenizing all units in the C-Array.
-- **Statistical Anomaly Rejection (`outlier_std`):** Automatically quarantining physically impossible anomalies (e.g., values deviating > 3 Standard Deviations from the norm) using rapid Z-Score masking.
-- **Protocol Architecture & Polars Integration:** Decoupling the physics brain from Pandas to natively support `polars.DataFrame` via pure Rust-based backend expressions.
-- **Cross-Column Feature Synthesis (`DerivedField`):** Synthesizing entirely new ML features (e.g., `Power = Volts * Amps`) directly within the Schema using declarative Metaclass algebra.
-- **Financial Dimension Expansion:** Treating currency as a dynamic physical dimension, protected by "Excel Hell" localization (`decimal_mark`) for cross-border financial pipelines.
-- **AOT String Parser:** An Ahead-of-Time compiler to parse complex composite strings (e.g., `"kg * m / s^2"`) into AST matrix execution plans during initialization.
+Phaethon is actively evolving to become the ultimate dimensional engine for Scientific Machine Learning (SciML) and high-performance Data Engineering. Our next major milestones include:
+
+* **Pure Rust Parsing Core:** Rewriting the heavy string-extraction regex layer entirely in Rust via PyO3 to bypass Python's GIL and push parsing speeds to the hardware limit.
+* **Zero-Copy Backend Integration:** Expanding our backend-agnostic architecture to natively support PyArrow memory layouts, achieving true zero-copy execution for Polars.
+* **Physics-Informed Neural Networks (PINNs):** Developing the `phaethon.pinns` experimental module. Deep binding integration with PyTorch to allow neural networks to intrinsically understand physical dimensions, Buckingham Pi reductions, and autograd scaling constraints.
 
 ---
 

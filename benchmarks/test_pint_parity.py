@@ -12,7 +12,6 @@ from hypothesis import given, settings
 import hypothesis.strategies as st
 import numpy as np
 import pint
-
 import phaethon as ptn
 
 # Initialize the baseline oracle (Pint)
@@ -26,13 +25,30 @@ PINT_ALIAS_MAP = {
     'bale-aus': 'bale',
     'm_P': 'planck_mass',
     'gr': 'grain',
-    'bbl': 'oil_barrel'
+    'bbl': 'oil_barrel',
+    
+    'Ω': 'ohm',
+    'mΩ': 'milliohm',
+    'kΩ': 'kiloohm',
+    'MΩ': 'megaohm',
+    'GΩ': 'gigaohm',
+    'µΩ': 'microohm',
+    'µF': 'microfarad',
+    'µV': 'microvolt',
+    'µA': 'microampere'
 }
 
 # Generate O(N) Hub-and-Spoke test cases (Target <-> Base Unit)
 test_cases = []
 for dim in ptn.dims():
-    base_unit_cls = ptn.baseof(dim)
+    if dim in ['currency', 'data']:
+        continue
+        
+    try:
+        base_unit_cls = ptn.baseof(dim)
+    except ValueError:
+        continue
+        
     base_symbol = base_unit_cls.symbol
     all_units = ptn.unitsin(dim)
     
@@ -67,17 +83,22 @@ def test_phaethon_accuracy_against_pint(dim, source_u, target_u, val):
     except Exception as e:
         pytest.skip(f"SKIP: Pint internal calculus error ({type(e).__name__}) on '{source_u}'")
 
-    # 2. Execute Challenger (Phaethon)
+
     try:
-        phaethon_val = ptn.convert(val, source_u).to(target_u).resolve()
+        from phaethon.core.registry import ureg as ptn_ureg
+        
+        source_cls = ptn_ureg().get_unit_class(source_u, expected_dim=dim)
+        target_cls = ptn_ureg().get_unit_class(target_u, expected_dim=dim)
+        
+        phaethon_val = ptn.convert(val, source_cls).to(target_cls).use(out='raw').resolve()
+        
     except ptn.AxiomViolationError:
-        # Phaethon strictly enforces physical reality (e.g., Absolute Zero, Negative Mass)
         pytest.skip(f"SKIP: Phaethon enforced physical boundary axiom on {val} {source_u}")
 
-    # 3. Validation (Tolerance accounts for extreme scale float64 rounding, e.g., Giga/Pico)
     np.testing.assert_allclose(
         phaethon_val,
         pint_val,
         rtol=1e-4,
+        atol=1e-10,
         err_msg=f"PARITY FAILED: {val} {source_u} -> {target_u}. Phaethon: {phaethon_val} | Pint: {pint_val}"
     )

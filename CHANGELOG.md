@@ -7,6 +7,71 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.3.0] - 2026-03-12
+
+This release marks a major architectural leap, consolidating high-performance data engineering with physical, financial, and semantic intelligence. Version 0.3.0 introduces native Polars support via Rust-backed expressions, a multi-tier configuration hierarchy, massive dimensional expansions, and a complete overhaul of Developer Experience (DX) utilizing Python 3.10+ declarative standards.
+
+### High-Performance Backends
+* **feat(polars):** Introduced native support for `polars.DataFrame` as an **optional dependency** (installable via `[polars]` or `[all]`). Phaethon now implements a backend-agnostic protocol that detects Polars objects and executes normalization using high-speed Polars Expressions (`pl.Expr`).
+* **feat(engine):** Developed a vectorized NumPy bridge via `map_batches` for Polars, allowing complex physical axiom validation to run at near-native speeds while maintaining 100% mathematical parity with the Pandas engine.
+* **feat(engine):** Implemented a "NaN Sweeper" and "Struct Wrapper" logic for the Polars backend to ensure that regex-rejected strings and axiom violations are correctly neutralized to `null` values, matching the behavior of the established Pandas engine.
+
+### Dimensional Core & Tensor Algebra
+* **feat(api):** Overhauled the **Fluent Data Engineering API** (`ptn.convert().to().use().context().resolve()`). This chainable, lazily-evaluated builder pattern now fully supports lists of Phaethon objects, N-dimensional NumPy tensors, mixed-unit iterables, and raw scalars natively without Python loop overheads on vectorized operations.
+* **feat(api):** Implemented strict calculation engine interception via `.use(dtype=...)`. The pipeline automatically handles safe upcasting to high-precision `Decimal` (bypassing native Python float degradation via string casting) and strict downcasting to `float64` for raw performance *before* dimensional algebra is executed.
+* **feat(api):** Upgraded OOP Conversion Interface. The `BaseUnit.to()` method now accepts localized, on-the-fly context injections (`obj.to(Target, context={...})`). This allows safe, isolated financial conversions without mutating the underlying object's state or relying on global configs.
+* **feat(tensor):** Integrated native NumPy proxying directly into `BaseUnit`. Instances wrapping NumPy arrays now natively support array slicing (`__getitem__`), properties (`shape`, `ndim`, `T`), and shape manipulation (`reshape`, `flatten`) while preserving their physical unit wrappers.
+* **feat(vmath):** Added native vectorized statistical methods to `BaseUnit` (`sum`, `mean`, `max`, `min`). Reductions along specific axes now correctly return structurally instantiated physical tensors rather than naked `float64` arrays.
+* **feat(algebra):** Engineered **Syntactic Sugar for Cross-Entity Operations** and **Dimensionless Collapse**. The physics engine seamlessly executes mathematics between Instances and naked Classes implicitly. Furthermore, operations that mathematically cancel out (e.g., `u.Meter / u.Meter`) now intelligently collapse into a dimensionless `BaseUnit` object rather than a primitive `float`, preserving strict OOP API contracts.
+* **feat(algebra):** Introduced **Class-Level Hierarchy Comparisons** (`<`, `>`, `<=`, `>=`). Developers can inherently sort and validate unit hierarchies without instantiating them (e.g., `u.Gigabyte > u.Megabyte` natively evaluates to `True`).
+* **feat(algebra):** Engineered **Dynamic Context Inheritance for Derived Units**. Metaclass-synthesized units (e.g., `Euro / Gram`) now dynamically evaluate their base multipliers at runtime. This guarantees that complex econo-physics units instantly react to real-time `context` injections without suffering from static multiplier lock-in.
+* **feat(operators):** Implemented advanced physics dunder methods. The engine now fully supports Matrix Multiplication / Dot Products (`@`) for dimensional synthesis, Floor Division (`//`) for discrete quantization, Modulo (`%`) for phase/cycle resets, and vector manipulations (`-`, `+`, `abs`, `round`).
+* **fix(engine):** Overhauled the `_normalize_types` mathematical router. Eliminated forced `Decimal` casting ("The Decimal Dictatorship"). The engine now dynamically preserves native `float64` for maximum computational speed, only escalating to high-precision `Decimal` mathematics when explicitly requested by the user.
+* **fix(security):** Eradicated Global Mutable State in the dimensional registry. The `_DIMENSIONAL_DNA` is now strictly encapsulated within a private singleton (`_PhysicsGenome`) utilizing Python name mangling (`__dna`), preventing accidental global namespace pollution or malicious mutation of physical axioms.
+
+### Semantic Intelligence & Machine Learning
+* **feat(semantics):** Introduced the Declarative Semantic Transformation API (`ptn.Ontology`, `ptn.Concept`, `ptn.SemanticState`, `ptn.Condition`). Users can now map discrete raw strings to canonical concepts, or classify continuous physical vectors into discrete logical states strictly bounded by dimensional physics (e.g., mapping `u.Celsius` ranges into "Cold", "Warm", "Hot").
+* **feat(semantics):** Integrated RapidFuzz (now promoted to a **mandatory core dependency**) for Vectorized Semantic Matching. Added `fuzzy_match=True` and `confidence` thresholds to `ptn.Field`, enabling the engine to automatically auto-correct typos in categorical/ontology data using C++ string metrics.
+* **feat(schema):** Introduced `ptn.DerivedField` and `ptn.col()`. Users can now synthesize new Machine Learning features (e.g., computing Power from Voltage and Current) safely across dimensional bounds via a custom Abstract Syntax Tree (AST) evaluator.
+* **feat(schema):** Implemented `Schema.blueprint()`. Generates a strict, JSON-serializable `TypedDict` structural blueprint of the schema, perfect for automated Data Catalogs and enterprise Data Governance.
+
+### Tiered Configuration & Industrial Quality
+* **feat(config):** Engineered a 3-Tier Configuration Hierarchy for managing engine state (Global -> Block -> Field). This allows for thread-safe localization (decimal marks/thousands separators) and dynamic alias management without global state pollution.
+* **feat(schema):** Added Physics-Aware Boundaries (`min`, `max`) to `ptn.Field`. The engine now automatically performs cross-unit conversion before evaluating boundary constraints (e.g., rejecting "120 lbs" against a "50 kg" limit).
+* **feat(schema):** Introduced Dimensional Imputation (`impute_by`) and Statistical Anomaly Rejection (`outlier_std`). Users can rescue `NaN` values using statistical methods ("mean", "median", "mode") or physically identify and neutralize data points exceeding a specified Standard Deviation (Z-Score).
+* **feat(engine):** Expanded `on_error='clip'` Behavior. The pipeline now correctly forces invalid numbers to strictly attach to the nearest mathematical bound defined by either the user's Schema `min`/`max` or the unit's intrinsic `@axiom.bound` limit across both Pandas and Polars backends.
+* **feat(engine):** Introduced **"God Mode" (`ignore_axiom_bound=True`)**. Developers can now strategically override and bypass all intrinsic physical laws (e.g., allowing temperatures below Absolute Zero) for experimental testing and simulation logic, deployable via Field, Block (`using`), or Global Config.
+
+### Majestic Developer Experience (DX) & Typing Overhaul
+* **feat(dx):** Engineered **"Type-State" Generic Overloads** for the Fluent API. The `_ConversionBuilder` is now a true `Generic[_T_Out]`. Deployed 5 precise `@overload` signatures for `convert()` and **16 massive overloads** for `.use()` to completely eradicate `Any` types. IDEs now perfectly predict the exact structural return type of `.resolve()` (locking to `Decimal`, `list[BaseUnit]`, `list[float]`, `str`, or `np.ndarray`). Also refactored `.use()` parameters: renamed `mode` to `dtype` and `format` to `out` for a more native Data Science feel.
+* **feat(dx):** Implemented the **IDE Tooltip Hack (`__init__` routing)**. Docstrings for highly complex declarative classes (`ptn.Field`, `ptn.Concept`, `ptn.Condition`) have been surgically routed to their `__init__` methods. Strict IDEs (VS Code/Pylance) will now reliably render comprehensive parameter tooltips during instantiation.
+* **fix(dx):** Eliminated **Union Method Pollution**. By surgically separating scalar, iterable, and array type-hints at the `convert()` entry point, strict IDEs (Pylance/Mypy) no longer hallucinate NumPy array methods on simple floating-point scalars.
+* **refactor(typing):** Upgraded minimum requirement to **Python 3.10+**. The entire codebase has been refactored to utilize PEP 604 (`|` operator) and native types, discarding legacy `typing` modules for an incredibly clean, "Majestic" code structure.
+* **refactor(typing):** Enforced absolute boundary separation between Metaclass (Blueprint) and Instance operations. Purged `Any` fallbacks in `_PhaethonUnitMeta` return types. Strict IDEs now structurally recognize dynamically synthesized units as formal Classes (semantic highlighting), fully activating constructor autocompletion.
+* **refactor(typing):** Formalized unified type aliases (`ConvertibleInput`, `ContextDict`, `ErrorAction`, `ImputeMethod`, etc) across the physics engine. This provides crystal-clear signature documentation for scalar, NumPy array, and unit instance inputs.
+* **feat(typing):** Added PEP 561 `py.typed` compliance. IDEs (VS Code, PyCharm) and strict Type Checkers (Mypy, Pylance) now fully recognize Phaethon's complex `@overload` signatures, `TypeVar` generics, and `Protocol` bindings.
+* **fix(typing):** Resolved strict type hinting for core properties (`.mag`, `.exact`) using explicit unions (`float | np.ndarray | Decimal`), successfully activating full IDE intelligence and autocomplete for NumPy array methods.
+* **feat(dx):** Implemented **Dynamic Metaclass Docstrings**. Dynamically synthesized classes (e.g., `Meter / Second`) now automatically generate rich `__doc__` attributes detailing their algebraic origin, symbol, and base multiplier, enhancing object inspection in Jupyter Notebooks.
+* **feat(dx):** Implemented **Ellipsis (`...`) Auto-Mapping** for declarative schemas. Using `ptn.Field(...)` or `ptn.Concept(...)` automatically infers the target DataFrame column or Ontology alias from the variable name itself, strictly enforcing the DRY (Don't Repeat Yourself) principle.
+* **refactor(dx):** Applied strict framework namespace conventions. Transitioned internal classes to protected (`_`) and injected Framework Magic Attributes (`__phaethon_fields__`) to ensure absolute zero collision with user-defined database columns or variables.
+* **refactor(vmath):** Overhauled `phaethon.core.vmath` API. Mathematical routers are now elegantly shadowed (`abs`, `max`, `min`, `pow`) using `builtins` internally, providing a purely intuitive, native Python experience without infinite recursion risks.
+
+### Domain Expansions: FinTech, Electromagnetism, & Photometry
+* **feat(engine):** Massive expansion of the `_DIMENSIONAL_DNA` registry. The engine now dynamically resolves complex signatures across Kinematics, Thermodynamics, Fluid Dynamics, Computing (`data_rate`), and **Econo-physics** (e.g., dynamically resolving `Currency / Energy` into `'price_per_energy'`).
+* **feat(currency):** Deployed the `currency` dimension module supporting major Fiat and Cryptocurrencies. Engineered a **Smart FX Resolver** via `CtxProxy` that automatically detects and mathematically routes both Direct (e.g., `eur_to_usd`) and Inverse (e.g., `usd_to_idr`) exchange rate quotes dynamically at runtime, entirely bypassing floating-point drift.
+* **feat(electromagnetism):** Added comprehensive electrical dimensions:
+  * `electric_charge` (Coulomb, AmpereHour)
+  * `electric_current` (Ampere)
+  * `electric_potential` (Volt)
+  * `electrical_capacitance` (Farad)
+  * `electrical_resistance` (Ohm)
+* **feat(photometry):** Added optics and lighting dimensions:
+  * `luminous_flux` (Lumen)
+  * `illuminance` (Lux)
+  * `luminous_intensity` (Candela)
+
+---
+
 ## [0.2.3] - 2026-03-01
 
 ### The Quantum Precision Patch & Enterprise DX

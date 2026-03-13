@@ -22,7 +22,7 @@ class SpeedUnit(BaseUnit):
 
 @_axiom.prepare(temperature=Kelvin)
 def _calc_mach_scale(temperature = _const.STANDARD_ATMOSPHERE_TEMP_K) -> float:
-    safe_temp = _vmath.maximum(temperature, _const.ABSOLUTE_ZERO_K)
+    safe_temp = _vmath.max(temperature, _const.ABSOLUTE_ZERO_K)
     return _const.SPEED_OF_SOUND_0C * _vmath.sqrt(safe_temp / _const.ZERO_CELSIUS_K)
 
 # =========================================================================

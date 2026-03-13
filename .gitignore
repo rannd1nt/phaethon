@@ -47,3 +47,9 @@ tests/
 htmlcov/
 .coverage
 .tox/
+
+# Other
+deps-target.toml
+RELEASE_TEMP.md
+REFINE.md
+DUCK_TYPE.md

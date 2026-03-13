@@ -1,8 +1,10 @@
 """
-Core Engine modules for Phaethon.
+Phaethon Core Engine.
 
-Contains the logic-driven Dimensional Algebra Engine, the global Unit Registry, 
-the Base Unit architecture, and the Axiom physics modeling modifiers. This package 
-forms the low-level computational backbone for strict dimensional validation, 
-scalar mathematics, and high-performance vectorized NumPy integration.
+This internal package constitutes the low-level computational backbone of the Phaethon framework.
+It orchestrates the logic-driven Dimensional Algebra Engine, the global Unit Registry, 
+the declarative Semantic transformation layer, and the DataFrame execution backends (Pandas & Polars). 
+
+Note: Modules within this package are not intended for direct user consumption. 
+Public APIs are seamlessly exposed through the top-level `phaethon` namespace.
 """

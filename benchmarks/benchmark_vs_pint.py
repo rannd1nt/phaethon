@@ -43,7 +43,7 @@ print(f"Method: Pint + Pandas (.apply)  | Time: {duration_pint:.4f}s")
 
 
 # ==========================================
-# 2. CHISA (Vectorized Schema Processing)
+# 2. PHAETHON (Vectorized Schema Processing)
 # ==========================================
 class ConversionSchema(ptn.Schema):
     mass_kg: ptn.u.Kilogram = ptn.Field(
@@ -52,20 +52,20 @@ class ConversionSchema(ptn.Schema):
         on_error='coerce'
     )
 
-start_time_chisa = time.perf_counter()
+start_time_phaethon = time.perf_counter()
 normalized_df = ConversionSchema.normalize(raw_data)
-duration_chisa = time.perf_counter() - start_time_chisa
+duration_phaethon = time.perf_counter() - start_time_phaethon
 
-print(f"Method: Chisa (Vectorized)      | Time: {duration_chisa:.4f}s")
+print(f"Method: Phaethon (Vectorized)      | Time: {duration_phaethon:.4f}s")
 
 # ==========================================
 # FINAL REPORT
 # ==========================================
-speedup_magnitude = duration_pint / duration_chisa
+speedup_magnitude = duration_pint / duration_phaethon
 
 print(f"\n{'-'*50}")
 print(f"ANALYSIS SUMMARY")
 print(f"{'-'*50}")
-print(f"Chisa performance gain: {speedup_magnitude:.2f}x faster")
-print(f"Efficiency increase:    {((duration_pint - duration_chisa) / duration_pint) * 100:.2f}% reduction in latency")
+print(f"Phaethon performance gain: {speedup_magnitude:.2f}x faster")
+print(f"Efficiency increase:    {((duration_pint - duration_phaethon) / duration_pint) * 100:.2f}% reduction in latency")
 print(f"{'-'*50}")

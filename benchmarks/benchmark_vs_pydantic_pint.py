@@ -104,14 +104,14 @@ print(f"{'-'*50}")
 # ==================================================
 
 # Running Pydantic + Pint...
-# Pydantic Duration : 28.1406 seconds
+# Pydantic Duration : 18.6286 seconds
 
 # Running Phaethon Vectorized Schema...
-# Phaethon Duration    : 0.4319 seconds
+# Phaethon Duration    : 0.4143 seconds
 
 # --------------------------------------------------
 # ANALYSIS SUMMARY
 # --------------------------------------------------
-# Phaethon performance gain: 65.16x faster
-# Efficiency increase:    98.47% reduction in latency
+# Phaethon performance gain: 44.96x faster
+# Efficiency increase:    97.78% reduction in latency
 # --------------------------------------------------

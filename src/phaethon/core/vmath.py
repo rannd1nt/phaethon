@@ -2,12 +2,16 @@
 Vectorized Math Wrapper for Phaethon Axioms.
 
 Polymorphically routes mathematical operations to NumPy (if handling arrays) 
-or the standard Python `math` library (if handling scalar floats/Decimals).
+or the standard Python `math` library/builtins (if handling scalar floats/Decimals).
 This ensures custom Axiom physics formulas remain type-agnostic and clean.
 """
+from __future__ import annotations
+
 import math as std_math
 import builtins
 from typing import Any
+
+from .compat import NumericLike, _T_Num
 
 try:
     import numpy as np
@@ -15,7 +19,6 @@ try:
 except ImportError:
     HAS_NUMPY = False
 
-# Mathematical Constants
 pi: float = std_math.pi
 e: float = std_math.e
 
@@ -23,7 +26,7 @@ def _is_array(val: Any) -> bool:
     """Internal helper to determine if a value is a NumPy array/vector."""
     return HAS_NUMPY and isinstance(val, (np.ndarray, np.generic))
 
-def sqrt(val: Any) -> Any:
+def sqrt(val: _T_Num) -> _T_Num:
     """
     Return the non-negative square root of the value.
     
@@ -32,9 +35,9 @@ def sqrt(val: Any) -> Any:
     Returns:
         The square root of the input. Type matches the input (scalar or array).
     """
-    return np.sqrt(val) if _is_array(val) else std_math.sqrt(val)
+    return np.sqrt(val) if _is_array(val) else std_math.sqrt(float(val)) # type: ignore
 
-def maximum(val: Any, limit: Any) -> Any:
+def max(val: _T_Num, limit: _T_Num) -> _T_Num:
     """
     Element-wise maximum of array elements or scalar values.
     
@@ -44,9 +47,9 @@ def maximum(val: Any, limit: Any) -> Any:
     Returns:
         The maximum value between `val` and `limit`.
     """
-    return np.maximum(val, limit) if _is_array(val) else max(val, limit)
+    return np.maximum(val, limit) if _is_array(val) else builtins.max(val, limit) # type: ignore
 
-def minimum(val: Any, limit: Any) -> Any:
+def min(val: _T_Num, limit: _T_Num) -> _T_Num:
     """
     Element-wise minimum of array elements or scalar values.
     
@@ -56,9 +59,9 @@ def minimum(val: Any, limit: Any) -> Any:
     Returns:
         The minimum value between `val` and `limit`.
     """
-    return np.minimum(val, limit) if _is_array(val) else min(val, limit)
+    return np.minimum(val, limit) if _is_array(val) else builtins.min(val, limit) # type: ignore
 
-def exp(val: Any) -> Any:
+def exp(val: _T_Num) -> _T_Num:
     """
     Calculate the exponential of all elements in the input array or scalar.
     
@@ -67,9 +70,9 @@ def exp(val: Any) -> Any:
     Returns:
         Element-wise exponential (e^val).
     """
-    return np.exp(val) if _is_array(val) else std_math.exp(val)
+    return np.exp(val) if _is_array(val) else std_math.exp(float(val)) # type: ignore
 
-def log(val: Any) -> Any:
+def log(val: _T_Num) -> _T_Num:
     """
     Return the natural logarithm (base e) of the value.
     
@@ -78,27 +81,27 @@ def log(val: Any) -> Any:
     Returns:
         Natural logarithm of the input.
     """
-    return np.log(val) if _is_array(val) else std_math.log(val)
+    return np.log(val) if _is_array(val) else std_math.log(float(val)) # type: ignore
 
-def cos(val: Any) -> Any:
+def cos(val: _T_Num) -> _T_Num:
     """
     Return the cosine of the input value (measured in radians).
     """
-    return np.cos(val) if _is_array(val) else std_math.cos(val)
+    return np.cos(val) if _is_array(val) else std_math.cos(float(val)) # type: ignore
 
-def sin(val: Any) -> Any:
+def sin(val: _T_Num) -> _T_Num:
     """
     Return the sine of the input value (measured in radians).
     """
-    return np.sin(val) if _is_array(val) else std_math.sin(val)
+    return np.sin(val) if _is_array(val) else std_math.sin(float(val)) # type: ignore
 
-def tan(val: Any) -> Any:
+def tan(val: _T_Num) -> _T_Num:
     """
     Return the tangent of the input value (measured in radians).
     """
-    return np.tan(val) if _is_array(val) else std_math.tan(val)
+    return np.tan(val) if _is_array(val) else std_math.tan(float(val)) # type: ignore
 
-def power(val: Any, exponent: Any) -> Any:
+def pow(val: _T_Num, exponent: int | float | NumericLike) -> _T_Num:
     """
     First array/scalar elements raised to powers from second array/scalar.
     
@@ -108,9 +111,9 @@ def power(val: Any, exponent: Any) -> Any:
     Returns:
         val raised to the power of exponent.
     """
-    return np.power(val, exponent) if _is_array(val) else std_math.pow(val, exponent)
+    return np.power(val, exponent) if _is_array(val) else builtins.pow(val, exponent) # type: ignore
 
-def abs(val: Any) -> Any:
+def abs(val: _T_Num) -> _T_Num:
     """
     Calculate the absolute value element-wise.
     
@@ -119,5 +122,4 @@ def abs(val: Any) -> Any:
     Returns:
         An array/scalar containing the absolute value of each element.
     """
-    # Menggunakan builtins.abs untuk mencegah recursive loop akibat shadowing
-    return np.abs(val) if _is_array(val) else builtins.abs(val)
+    return np.abs(val) if _is_array(val) else builtins.abs(val) # type: ignore
