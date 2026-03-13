@@ -1,6 +1,6 @@
 <div align="center">
 
-<h1>Phaethon — The Dimensional & Semantic Data Engineering Framework</h1>
+<h1>Phaethon — Dimensional Data Pipeline & Semantic Data Engineering Framework</h1>
 
 <p>
 <img src="https://img.shields.io/badge/MADE_WITH-PYTHON-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python">

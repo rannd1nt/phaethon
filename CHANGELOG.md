@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.3.0] - 2026-03-12
+## [0.3.0] - 2026-03-13
 
 This release marks a major architectural leap, consolidating high-performance data engineering with physical, financial, and semantic intelligence. Version 0.3.0 introduces native Polars support via Rust-backed expressions, a multi-tier configuration hierarchy, massive dimensional expansions, and a complete overhaul of Developer Experience (DX) utilizing Python 3.10+ declarative standards.
 
