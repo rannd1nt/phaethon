@@ -11,7 +11,7 @@ import math as std_math
 import builtins
 from typing import Any
 
-from .compat import NumericLike, _T_Num
+from .compat import NumericLike, _NumericT
 
 try:
     import numpy as np
@@ -26,7 +26,7 @@ def _is_array(val: Any) -> bool:
     """Internal helper to determine if a value is a NumPy array/vector."""
     return HAS_NUMPY and isinstance(val, (np.ndarray, np.generic))
 
-def sqrt(val: _T_Num) -> _T_Num:
+def sqrt(val: _NumericT) -> _NumericT:
     """
     Return the non-negative square root of the value.
     
@@ -37,7 +37,7 @@ def sqrt(val: _T_Num) -> _T_Num:
     """
     return np.sqrt(val) if _is_array(val) else std_math.sqrt(float(val)) # type: ignore
 
-def max(val: _T_Num, limit: _T_Num) -> _T_Num:
+def max(val: _NumericT, limit: _NumericT) -> _NumericT:
     """
     Element-wise maximum of array elements or scalar values.
     
@@ -49,7 +49,7 @@ def max(val: _T_Num, limit: _T_Num) -> _T_Num:
     """
     return np.maximum(val, limit) if _is_array(val) else builtins.max(val, limit) # type: ignore
 
-def min(val: _T_Num, limit: _T_Num) -> _T_Num:
+def min(val: _NumericT, limit: _NumericT) -> _NumericT:
     """
     Element-wise minimum of array elements or scalar values.
     
@@ -61,7 +61,7 @@ def min(val: _T_Num, limit: _T_Num) -> _T_Num:
     """
     return np.minimum(val, limit) if _is_array(val) else builtins.min(val, limit) # type: ignore
 
-def exp(val: _T_Num) -> _T_Num:
+def exp(val: _NumericT) -> _NumericT:
     """
     Calculate the exponential of all elements in the input array or scalar.
     
@@ -72,7 +72,7 @@ def exp(val: _T_Num) -> _T_Num:
     """
     return np.exp(val) if _is_array(val) else std_math.exp(float(val)) # type: ignore
 
-def log(val: _T_Num) -> _T_Num:
+def log(val: _NumericT) -> _NumericT:
     """
     Return the natural logarithm (base e) of the value.
     
@@ -83,25 +83,25 @@ def log(val: _T_Num) -> _T_Num:
     """
     return np.log(val) if _is_array(val) else std_math.log(float(val)) # type: ignore
 
-def cos(val: _T_Num) -> _T_Num:
+def cos(val: _NumericT) -> _NumericT:
     """
     Return the cosine of the input value (measured in radians).
     """
     return np.cos(val) if _is_array(val) else std_math.cos(float(val)) # type: ignore
 
-def sin(val: _T_Num) -> _T_Num:
+def sin(val: _NumericT) -> _NumericT:
     """
     Return the sine of the input value (measured in radians).
     """
     return np.sin(val) if _is_array(val) else std_math.sin(float(val)) # type: ignore
 
-def tan(val: _T_Num) -> _T_Num:
+def tan(val: _NumericT) -> _NumericT:
     """
     Return the tangent of the input value (measured in radians).
     """
     return np.tan(val) if _is_array(val) else std_math.tan(float(val)) # type: ignore
 
-def pow(val: _T_Num, exponent: int | float | NumericLike) -> _T_Num:
+def pow(val: _NumericT, exponent: int | float | NumericLike) -> _NumericT:
     """
     First array/scalar elements raised to powers from second array/scalar.
     
@@ -113,7 +113,7 @@ def pow(val: _T_Num, exponent: int | float | NumericLike) -> _T_Num:
     """
     return np.power(val, exponent) if _is_array(val) else builtins.pow(val, exponent) # type: ignore
 
-def abs(val: _T_Num) -> _T_Num:
+def abs(val: _NumericT) -> _NumericT:
     """
     Calculate the absolute value element-wise.
     

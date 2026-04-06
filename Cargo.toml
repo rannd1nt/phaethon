@@ -1,0 +1,13 @@
+[package]
+name = "phaethon-core"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "_rust_core" 
+crate-type = ["cdylib"]
+path = "rust_src/lib.rs"
+
+[dependencies]
+pyo3 = { version = "0.28.2", features = ["extension-module"] }
+rayon = "1.8"

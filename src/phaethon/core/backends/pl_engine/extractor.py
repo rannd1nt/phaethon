@@ -20,16 +20,35 @@ class ExtractorStage:
             isna_expr = isna_expr | blank_str_expr
 
         if parse_string:
-            regex_pattern = r'^\s*([-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?)(?:\s+(.*?))?\s*$'
-            
-            struct_expr = expr.cast(pl.String).str.extract_groups(regex_pattern)
-            
-            value_expr = struct_expr.struct.field("1").cast(pl.Float64, strict=False)
-            unit_expr = struct_expr.struct.field("2").str.strip_chars()
-            
-            unit_expr = pl.when(unit_expr == "").then(None).otherwise(unit_expr)
-            
-            combined_expr = pl.struct(value=value_expr, unit=unit_expr)
+            try:
+                from phaethon._rust_core import fast_extract
+                
+                def _rust_polars_bridge(s: pl.Series) -> pl.Series:
+                    """Menjembatani Polars Series ke Rust Byte-Scanner"""
+                    if len(s) == 0:
+                        return pl.Series(dtype=pl.Struct({"value": pl.Float64, "unit": pl.String}))
+                        
+                    rust_vals, rust_units = fast_extract(s.to_list())
+                    
+                    return pl.DataFrame({
+                        "value": rust_vals,
+                        "unit": rust_units
+                    }).to_struct(s.name)
+
+                combined_expr = expr.cast(pl.String).map_batches(
+                    _rust_polars_bridge,
+                    return_dtype=pl.Struct({"value": pl.Float64, "unit": pl.String})
+                )
+                
+            except ImportError:
+                regex_pattern = r'^\s*([-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?)(?:\s+(.*?))?\s*$'
+                struct_expr = expr.cast(pl.String).str.extract_groups(regex_pattern)
+                
+                value_expr = struct_expr.struct.field("1").cast(pl.Float64, strict=False)
+                unit_expr = struct_expr.struct.field("2").str.strip_chars()
+                unit_expr = pl.when(unit_expr == "").then(None).otherwise(unit_expr)
+                
+                combined_expr = pl.struct(value=value_expr, unit=unit_expr)
 
         elif unit_col_expr is not None:
             value_expr = expr.cast(pl.Float64, strict=False)

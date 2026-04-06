@@ -8,7 +8,7 @@ datasets with high anomaly rates (values violating Absolute Zero).
 import pandas as pd
 import numpy as np
 import phaethon as ptn
-from phaethon import u
+from phaethon import units
 import time
 
 # =========================================================================
@@ -39,7 +39,7 @@ print(df_dirty.head())
 class ExtremeThermalSchema(ptn.Schema):
     # Target: Kelvin (Absolute Thermodynamic Baseline)
     # We set on_error='coerce' so extreme anomalies quietly become NaN
-    standardized_temp: u.Kelvin = ptn.Field(
+    standardized_temp: units.Kelvin = ptn.Field(
         source="Sensor_Data", 
         parse_string=True, 
         on_error='coerce',

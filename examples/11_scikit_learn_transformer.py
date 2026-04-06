@@ -8,12 +8,12 @@ heterogeneous unit arrays before training a Random Forest.
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 import phaethon as ptn
-from phaethon import u
+from phaethon import units
 
 # 1. Define the physical contract using Phaethon Schema
 class FeatureSchema(ptn.Schema):
-    weight_kg: u.Kilogram = ptn.Field(source="weight_raw", parse_string=True, on_error='coerce')
-    top_speed_ms: u.MeterPerSecond = ptn.Field(source="speed_raw", parse_string=True, on_error='coerce')
+    weight_kg: units.Kilogram = ptn.Field(source="weight_raw", parse_string=True, on_error='coerce')
+    top_speed_ms: units.MeterPerSecond = ptn.Field(source="speed_raw", parse_string=True, on_error='coerce')
 
 # 2. Wrap the Schema in a Scikit-Learn standard Transformer
 class PhaethonNormalizer(BaseEstimator, TransformerMixin):

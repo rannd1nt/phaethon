@@ -4,7 +4,7 @@ import sys
 from contextvars import ContextVar
 from contextlib import contextmanager
 from typing import Any, Generator
-from .compat import ContextDict, AliasRegistry, ErrorAction
+from .compat import ContextDict, AliasRegistry, ErrorAction, StrictnessLevel
 
 _GLB = "__phaethon_global__"
 _CTX = "__phaethon_context__"
@@ -15,7 +15,9 @@ def _global() -> ContextDict:
             "decimal_mark": ".",
             "thousands_sep": ",",
             "default_on_error": "raise",
-            "ignore_axiom_bound": False,
+            "axiom_strictness_level": "default",
+            "atol": 1e-12,
+            "rtol": 1e-9,
             "aliases": {},
             "context": {}
         }
@@ -30,7 +32,9 @@ def config(
     decimal_mark: str | None = None,
     thousands_sep: str | None = None,
     default_on_error: ErrorAction | None = None,
-    ignore_axiom_bound: bool | None = None,
+    axiom_strictness_level: StrictnessLevel | None = None,
+    atol: float | None = None,
+    rtol: float | None = None,
     aliases: AliasRegistry | None = None,
     context: ContextDict | None = None
 ) -> None:
@@ -44,7 +48,10 @@ def config(
             - 'raise': (Default) Halts execution and throws an AxiomViolationError.
             - 'coerce': Silently neutralizes invalid/out-of-bounds data into NaN or None.
             - 'clip': Forces values to stay within specified min/maxlimits or inherent axiom.bound if limits are undefined.
-        ignore_axiom_bound: If True, completely disables innate physical limits (e.g., Absolute Zero).
+        axiom_strictness_level: Determines how strictly physical boundary violations are treated 
+                                    ('default', 'strict', 'strict_warn', 'loose_warn', 'ignore').
+        atol: Absolute tolerance for floating-point comparisons. Used to determine equality for values close to zero. Default is 1e-12.
+        rtol: Relative tolerance for floating-point comparisons. Used to determine equality for very large or complex floating points. Default is 1e-9.
         aliases: A dictionary mapping official Phaethon unit symbols to custom user strings.
             Format: {"official_symbol": ["dirty_string_1", "dirty_string_2"]}
             Example: {"kg": ["kilos", "kilogramme"]}
@@ -63,7 +70,9 @@ def using(
     decimal_mark: str | None = None,
     thousands_sep: str | None = None,
     default_on_error: ErrorAction | None = None,
-    ignore_axiom_bound: bool | None = None,
+    axiom_strictness_level: StrictnessLevel | None = None,
+    atol: float | None = None,
+    rtol: float | None = None,
     aliases: AliasRegistry | None = None,
     context: ContextDict | None = None
 ) -> Generator[None, None, None]:
@@ -78,7 +87,10 @@ def using(
             - 'raise': (Default) Halts execution and throws an AxiomViolationError.
             - 'coerce': Silently neutralizes invalid/out-of-bounds data into NaN or None.
             - 'clip': Forces values to stay within specified min/maxlimits or inherent axiom.bound if limits are undefined.
-        ignore_axiom_bound: If True, completely disables innate physical limits (e.g., Absolute Zero).
+        axiom_strictness_level: Determines how strictly physical boundary violations are treated 
+                                    ('default', 'strict', 'strict_warn', 'loose_warn', 'ignore').
+        atol: Absolute tolerance for floating-point comparisons. Used to determine equality for values close to zero. Default is 1e-12.
+        rtol: Relative tolerance for floating-point comparisons. Used to determine equality for very large or complex floating points. Default is 1e-9.
         aliases: A dictionary mapping official Phaethon unit symbols to custom user strings.
             Format: {"official_symbol": ["dirty_string_1", "dirty_string_2"]}
             Example: {"kg": ["kilos", "kilogramme"]}

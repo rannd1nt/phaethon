@@ -6,14 +6,14 @@ recognizes that Force divided by Area equates to Pressure (Pascals).
 """
 
 import phaethon as cs
-from phaethon import u
+from phaethon import units
 
 # Civil engineering load test on a concrete pillar
 # Force: 50 Kips (Kilo-pounds)
-applied_force = u.Kip(50.0)
+applied_force = units.Kip(50.0)
 
 # Area: 200 Square Inches
-surface_area = u.SquareInch(200.0)
+surface_area = units.SquareInch(200.0)
 
 print(f"Applied Force : {applied_force}")
 print(f"Surface Area  : {surface_area}")
@@ -25,5 +25,5 @@ stress_pressure = applied_force / surface_area
 print(f"\nRaw Synthesized Stress: {stress_pressure} (Dimension: {cs.dimof(stress_pressure)})")
 
 # Normalize to standard Megapascals for the final report
-stress_mpa = stress_pressure.to(u.Megapascal).mag
+stress_mpa = stress_pressure.to(units.Megapascal).mag
 print(f"Standardized Stress   : {stress_mpa:.2f} MPa")

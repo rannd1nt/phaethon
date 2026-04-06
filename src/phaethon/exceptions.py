@@ -31,6 +31,46 @@ class DimensionMismatchError(PhaethonError, TypeError):
         ctx_msg = f" ({context})" if context else ""
         super().__init__(f"Dimension mismatch{ctx_msg}. Expected '{expected_dim}', but got '{received_dim}'.")
 
+class PhysicalAlgebraError(PhaethonError, TypeError):
+    """
+    Raised when a mathematical operation (+, -, ==, etc.) involves incompatible physical dimensions.
+    """
+    __module__ = "builtins"
+
+    def __init__(self, op_name: str, left_dim: str, right_dim: str) -> None:
+        self.op_name = op_name
+        self.left_dim = left_dim
+        self.right_dim = right_dim
+        
+        msg = (
+            f"Mathematical operation '{op_name}' failed due to incompatible physical dimensions.\n"
+            f"  Left operand  : {left_dim}\n"
+            f"  Right operand : {right_dim}"
+        )
+        super().__init__(msg)
+
+class EquationBalanceError(PhaethonError, ValueError):
+    """
+    Raised when a physics-informed loss function receives mismatched dimensions 
+    between the computed residual and the target state.
+    """
+    __module__ = "builtins"
+
+    def __init__(self, residual_dim: str, target_dim: str) -> None:
+        self.residual_dim = residual_dim
+        self.target_dim = target_dim
+        
+        msg = (
+            f"The PDE residual and target state do not share the same physical dimension.\n"
+            f"  Residual : {residual_dim}\n"
+            f"  Target   : {target_dim}"
+        )
+        super().__init__(msg)
+
+class SemanticMismatchError(PhaethonError):
+    """Raised when two units have the same dimension but conflicting physical semantics (e.g., Cycle vs Decay)."""
+    __module__ = "builtins"
+
 class AxiomViolationError(PhaethonError, ValueError):
     """
     Raised when a scalar value violates the physical laws or strict boundaries 

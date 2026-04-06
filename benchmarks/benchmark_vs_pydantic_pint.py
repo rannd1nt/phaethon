@@ -70,7 +70,7 @@ print(f"Pydantic Duration : {duration_pydantic:.4f} seconds\n")
 # ==========================================
 class PhaethonSchema(ptn.Schema):
     # Target Meters natively
-    length_result: ptn.u.Meter = ptn.Field(
+    length_result: ptn.units.Meter = ptn.Field(
         source="length_raw",
         parse_string=True,
         on_error='coerce'

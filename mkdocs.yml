@@ -1,0 +1,94 @@
+site_name: Phaethon
+site_description: "Physics-Constrained Scientific Computing & Sci-ML"
+site_url: https://phaethon.readthedocs.io
+
+theme:
+  name: material
+  language: en
+  custom_dir: overrides
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - content.code.copy
+  palette:
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: deep purple
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+
+plugins:
+  - search
+  - social
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: numpy
+            show_source: false
+            show_root_heading: true
+            show_signature_annotations: false
+            separate_signature: true
+            filters:
+              - "!^__"
+  - minify:
+      minify_html: true
+  - git-revision-date-localized:
+      type: timeago
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Documentation Home: docs/index.md
+
+  - Physics Engine:
+    - Overview: docs/physics/index.md
+    - Units & Tensors: docs/physics/units.md
+    - Dimensional Algebra: docs/physics/algebra.md
+    - Scientific Compute: docs/physics/compute.md
+    - Specialized Domains: docs/physics/domains.md
+    - Config & Guardrails: docs/physics/config.md
+    - Custom Units: docs/physics/custom.md
+    - Fluent API: docs/physics/fluent.md
+
+  - Data Engineering:
+    - Overview: docs/data/index.md
+    - Tabular Schema: docs/data/schema.md
+    - Fuzzy Semantics: docs/data/semantics.md
+    - Polyglot I/O: docs/data/io.md
+
+  - Classic SciML:
+    - Overview: docs/sciml/index.md
+    - Meta-Estimators: docs/sciml/estimators.md
+    - Transformers: docs/sciml/transformers.md
+    - Metrics: docs/sciml/metrics.md
+
+  - Neural PDEs (PINNs):
+    - Overview: docs/pinns/index.md
+    - Tensors & Ops: docs/pinns/tensors.md
+    - Losses: docs/pinns/losses.md
+    - Calculus: docs/pinns/calculus.md
+    - Operators (FNO): docs/pinns/fno.md
+
+  - Appendix:
+    - Exceptions: docs/exceptions.md
+    - Utility API: docs/utilities.md
+    - Glossary: docs/glossary.md
+
+extra_css:
+  - stylesheet/style.css

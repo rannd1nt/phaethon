@@ -20,12 +20,15 @@ ureg = pint.UnitRegistry()
 # Semantic bridging map to handle Pint's parser limitations and nomenclature differences
 PINT_ALIAS_MAP = {
     '°C': 'degC', '°F': 'degF', '°R': 'degR', '°Re': 'degRe',
+    '': 'dimensionless',
+    '%': 'percent',
     'ft-lbf': 'foot_pound',
     'short_tonf': 'short_ton_force',
     'bale-aus': 'bale',
     'm_P': 'planck_mass',
     'gr': 'grain',
     'bbl': 'oil_barrel',
+    'cycle/s': 'Hz',
     
     'Ω': 'ohm',
     'mΩ': 'milliohm',
@@ -64,6 +67,8 @@ for dim in ptn.dims():
 @settings(max_examples=50, deadline=None)
 @given(val=st.floats(min_value=1.0, max_value=1000.0, allow_nan=False, allow_infinity=False))
 def test_phaethon_accuracy_against_pint(dim, source_u, target_u, val):
+    if "Np" in [source_u, target_u]:
+        pytest.skip("SKIP: Pint power/root-power logarithmic ambiguity")
     
     pint_source = PINT_ALIAS_MAP.get(source_u, source_u)
     pint_target = PINT_ALIAS_MAP.get(target_u, target_u)
@@ -92,8 +97,13 @@ def test_phaethon_accuracy_against_pint(dim, source_u, target_u, val):
         
         phaethon_val = ptn.convert(val, source_cls).to(target_cls).use(out='raw').resolve()
         
-    except ptn.AxiomViolationError:
+    except ptn.exceptions.AxiomViolationError:
         pytest.skip(f"SKIP: Phaethon enforced physical boundary axiom on {val} {source_u}")
+
+    if dim == 'molar_mass':
+        print(f"\n[DEBUG MOLAR MASS] Val: {val}")
+        print(f"Phaethon: {phaethon_val} (Type: {type(phaethon_val)})")
+        print(f"Pint: {pint_val} (Type: {type(pint_val)})")
 
     np.testing.assert_allclose(
         phaethon_val,

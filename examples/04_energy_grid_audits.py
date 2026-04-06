@@ -7,10 +7,10 @@ This script filters out inactive meters before standardizing raw energy data.
 
 import pandas as pd
 import phaethon as ptn
-from phaethon import u
+from phaethon import units
 
 class EnergyAuditSchema(ptn.Schema):
-    total_energy: u.KilowattHour = ptn.Field(
+    total_energy: units.KilowattHour = ptn.Field(
         source="Raw_Usage", parse_string=True, on_error='coerce', round=2
     )
 

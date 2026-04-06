@@ -21,10 +21,20 @@ class ExtractorStage:
         units_array = None
 
         if parse_string:
-            extracted = series.astype(str).str.extract(r'^\s*([-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?)(?:\s+(.*?))?\s*$')
-            values_array = pd.to_numeric(extracted[0], errors='coerce').values
-            units_array = np.asarray(extracted[1].values, dtype=object)
-            units_array[units_array == ''] = np.nan
+            try:
+                from phaethon._rust_core import fast_extract
+                raw_list = series.tolist()
+
+                rust_vals, rust_units = fast_extract(raw_list)
+                
+                values_array = np.array(rust_vals, dtype=float)
+                units_array = np.array(rust_units, dtype=object)
+                
+            except ImportError:
+                extracted = series.astype(str).str.extract(r'^\s*([-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?)(?:\s+(.*?))?\s*$')
+                values_array = pd.to_numeric(extracted[0], errors='coerce').values
+                units_array = np.asarray(extracted[1].values, dtype=object)
+                units_array[units_array == ''] = np.nan
             
         elif unit_col_data is not None:
             values_array = pd.to_numeric(series, errors='coerce').values

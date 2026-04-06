@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pandas as pd
 import numpy as np
+import warnings
 from typing import Any
 from ...registry import ureg
 from ....exceptions import AxiomViolationError, NormalizationError, UnitNotFoundError, DimensionMismatchError
@@ -22,8 +23,16 @@ class ConverterStage:
     ) -> np.ndarray:
         
         result_array = np.full(len(raw_series), np.nan, dtype=float)
+        
         active_context = get_merged_context(getattr(field, 'context', {}))
-        ignore_bound = get_config("ignore_axiom_bound", getattr(field, 'ignore_axiom_bound', None))
+        if getattr(field, 'axiom_strictness_level', None) is not None:
+            active_context["axiom_strictness_level"] = field.axiom_strictness_level
+        if getattr(field, 'on_error', None) is not None:
+            active_context["default_on_error"] = field.on_error
+
+        strictness = get_config("axiom_strictness_level", getattr(field, 'axiom_strictness_level', None)) or "default"
+        should_warn = strictness in ("strict_warn", "loose_warn")
+        should_enforce = strictness in ("default", "strict", "strict_warn")
 
         if units_array is not None:
             valid_unit_mask = (~pd.isna(units_array)) & (~isna_mask)
@@ -35,34 +44,47 @@ class ConverterStage:
                         source_cls = ureg().get_unit_class(u_str, expected_dim=target_dim)
                         raw_masked = values_array[mask].astype(float)
                         
-                        if ignore_bound:
-                            axiom_min = None
-                            axiom_max = None
+                        if strictness == "ignore":
+                            axiom_min, axiom_max = None, None
                         else:
                             axiom_min = getattr(source_cls, '__axiom_min__', None)
                             axiom_max = getattr(source_cls, '__axiom_max__', None)
                         
+                        # VALIDASI MIN
                         if axiom_min is not None:
                             violators = raw_masked < float(axiom_min)
                             if violators.any():
-                                if on_err == 'raise':
-                                    violator_indices = working_df.index[mask][violators].tolist()
-                                    raise AxiomViolationError(f"Raw '{u_str}' violates min bound of {axiom_min} at indices {violator_indices}")
-                                elif on_err == 'clip':
-                                    raw_masked[violators] = float(axiom_min)
-                                else:
-                                    raw_masked[violators] = np.nan
+                                violator_indices = working_df.index[mask][violators].tolist()
+                                msg = f"Raw '{u_str}' violates min bound of {axiom_min} at indices {violator_indices}"
                                 
+                                if should_warn and not should_enforce:
+                                    warnings.warn(f"Phaethon Axiom Warning: {msg}", category=UserWarning, stacklevel=2)
+                                
+                                if should_enforce:
+                                    if on_err == 'raise':
+                                        raise AxiomViolationError(msg)
+                                    elif on_err == 'clip':
+                                        raw_masked[violators] = float(axiom_min)
+                                    else:
+                                        raw_masked[violators] = np.nan
+                                
+                        # VALIDASI MAX
                         if axiom_max is not None:
                             violators = raw_masked > float(axiom_max)
                             if violators.any():
-                                if on_err == 'raise':
-                                    violator_indices = working_df.index[mask][violators].tolist()
-                                    raise AxiomViolationError(f"Raw '{u_str}' violates max bound of {axiom_max} at indices {violator_indices}")
-                                elif on_err == 'clip':
-                                    raw_masked[violators] = float(axiom_max)
-                                else:
-                                    raw_masked[violators] = np.nan
+                                violator_indices = working_df.index[mask][violators].tolist()
+                                msg = f"Raw '{u_str}' violates max bound of {axiom_max} at indices {violator_indices}"
+                                
+                                if should_warn and not should_enforce:
+                                    warnings.warn(f"Phaethon Axiom Warning: {msg}", category=UserWarning, stacklevel=2)
+                                
+                                if should_enforce:
+                                    if on_err == 'raise':
+                                        raise AxiomViolationError(msg)
+                                    elif on_err == 'clip':
+                                        raw_masked[violators] = float(axiom_max)
+                                    else:
+                                        raw_masked[violators] = np.nan
                         
                         src_name = getattr(source_cls, '__name__', str(source_cls))
                         tgt_name = getattr(field.target_unit, '__name__', str(field.target_unit))
@@ -135,34 +157,47 @@ class ConverterStage:
                     
                     raw_masked = values_array[pure_num_mask].astype(float)
                     
-                    if ignore_bound:
-                        axiom_min = None
-                        axiom_max = None
+                    if strictness == "ignore":
+                        axiom_min, axiom_max = None, None
                     else:
                         axiom_min = getattr(source_cls, '__axiom_min__', None)
                         axiom_max = getattr(source_cls, '__axiom_max__', None)
                     
+                    # PURE NUM VALIDASI MIN
                     if axiom_min is not None:
                         violators = raw_masked < float(axiom_min)
                         if violators.any():
-                            if on_err == 'raise':
-                                violator_indices = working_df.index[pure_num_mask][violators].tolist()
-                                raise AxiomViolationError(f"Pure number violates min bound of {axiom_min} at indices {violator_indices}")
-                            elif on_err == 'clip':
-                                raw_masked[violators] = float(axiom_min)
-                            else:
-                                raw_masked[violators] = np.nan
+                            violator_indices = working_df.index[pure_num_mask][violators].tolist()
+                            msg = f"Pure number violates min bound of {axiom_min} at indices {violator_indices}"
                             
+                            if should_warn and not should_enforce:
+                                warnings.warn(f"Phaethon Axiom Warning: {msg}", category=UserWarning, stacklevel=2)
+                                
+                            if should_enforce:
+                                if on_err == 'raise':
+                                    raise AxiomViolationError(msg)
+                                elif on_err == 'clip':
+                                    raw_masked[violators] = float(axiom_min)
+                                else:
+                                    raw_masked[violators] = np.nan
+                            
+                    # PURE NUM VALIDASI MAX
                     if axiom_max is not None:
                         violators = raw_masked > float(axiom_max)
                         if violators.any():
-                            if on_err == 'raise':
-                                violator_indices = working_df.index[pure_num_mask][violators].tolist()
-                                raise AxiomViolationError(f"Pure number violates max bound of {axiom_max} at indices {violator_indices}")
-                            elif on_err == 'clip':
-                                raw_masked[violators] = float(axiom_max)
-                            else:
-                                raw_masked[violators] = np.nan
+                            violator_indices = working_df.index[pure_num_mask][violators].tolist()
+                            msg = f"Pure number violates max bound of {axiom_max} at indices {violator_indices}"
+                            
+                            if should_warn and not should_enforce:
+                                warnings.warn(f"Phaethon Axiom Warning: {msg}", category=UserWarning, stacklevel=2)
+                                
+                            if should_enforce:
+                                if on_err == 'raise':
+                                    raise AxiomViolationError(msg)
+                                elif on_err == 'clip':
+                                    raw_masked[violators] = float(axiom_max)
+                                else:
+                                    raw_masked[violators] = np.nan
                     
                     src_name = getattr(source_cls, '__name__', str(source_cls))
                     tgt_name = getattr(field.target_unit, '__name__', str(field.target_unit))

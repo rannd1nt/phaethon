@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 import types
+import warnings
 from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -9,6 +10,7 @@ if TYPE_CHECKING:
     from .compat import ContextDict, NumericLike
 
 from ..exceptions import DimensionMismatchError
+from .compat import HAS_RAPIDFUZZ
 
 # =========================================================================
 # 1. ONTOLOGY & DISCRETE CONCEPTS (Categorical Semantic Mapping)
@@ -82,32 +84,33 @@ class Ontology(metaclass=_OntologyMeta):
                 
         # 2. FUZZY MATCHING
         if fuzzy_match:
-            try:
-                from rapidfuzz import process, fuzz
-            except ImportError:
-                raise ImportError(
-                    "Phaethon ML Module Missing: 'rapidfuzz' is required for fuzzy semantic matching. "
-                    "Install it via: pip install rapidfuzz"
+            if not HAS_RAPIDFUZZ:
+                warnings.warn(
+                    "\033[33m[Phaethon Degradation]\033[0m 'fuzzy_match=True' requested in Ontology.match(), "
+                    "but 'rapidfuzz' is not installed. Falling back to exact string match. ",
+                    UserWarning
                 )
-            
-            # Flatten the ontology dictionary for the fuzzy search space
-            search_dict: dict[str, str] = {}
-            for name, concept in cls.__phaethon_concepts__.items():
-                search_dict[name.lower()] = name
-                for alias in concept.aliases:
-                    search_dict[alias.lower()] = name
-                    
-            # Extract the best match
-            match = process.extractOne(
-                raw_lower, 
-                search_dict.keys(), 
-                scorer=fuzz.ratio
-            )
-            
-            if match:
-                best_str, score, _ = match
-                if score >= (confidence * 100.0):
-                    return search_dict[best_str]
+            else:
+                from rapidfuzz import process, fuzz
+                
+                # Flatten the ontology dictionary for the fuzzy search space
+                search_dict: dict[str, str] = {}
+                for name, concept in cls.__phaethon_concepts__.items():
+                    search_dict[name.lower()] = name
+                    for alias in concept.aliases:
+                        search_dict[alias.lower()] = name
+                        
+                # Extract the best match
+                match = process.extractOne(
+                    raw_lower, 
+                    search_dict.keys(), 
+                    scorer=fuzz.ratio
+                )
+                
+                if match:
+                    best_str, score, _ = match
+                    if score >= (confidence * 100.0):
+                        return search_dict[best_str]
                     
         return None
     
