@@ -34,4 +34,4 @@ jobs:
           pip install -e '.[all,dev]'
 
       - name: Run Test Suite
-        run: pytest
+        run: pytest tests/ -v

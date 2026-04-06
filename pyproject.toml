@@ -90,3 +90,6 @@ module-name = "phaethon._rust_core"
 Homepage = "https://github.com/rannd1nt/phaethon"
 Repository = "https://github.com/rannd1nt/phaethon.git"
 "Bug Tracker" = "https://github.com/rannd1nt/phaethon/issues"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
