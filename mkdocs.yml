@@ -92,3 +92,8 @@ nav:
 
 extra_css:
   - stylesheet/style.css
+
+extra:
+  analytics:
+    provider: google
+    property: G-8E8TPD1JNZ
