@@ -8,16 +8,16 @@ anomalies (like temperatures violating Absolute Zero).
 
 import pandas as pd
 import phaethon as ptn
-from phaethon import u
+from phaethon import units
 
 class HealthDataSchema(ptn.Schema):
-    heart_rate: u.BeatsPerMinute = ptn.Field(
+    heart_rate: units.BeatsPerMinute = ptn.Field(
         source="HR_Raw", parse_string=True, on_error='coerce', min=0
     )
-    energy_burned: u.Kilocalorie = ptn.Field(
+    energy_burned: units.Kilocalorie = ptn.Field(
         source="Calories", parse_string=True, on_error='coerce', round=2
     )
-    body_temp: u.Celsius = ptn.Field(
+    body_temp: units.Celsius = ptn.Field(
         source="Temp", parse_string=True, on_error='coerce', round=1
     )
 

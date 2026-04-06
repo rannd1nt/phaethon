@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block htmltitle %}
+  {% if page.is_homepage %}
+    <title>{{ config.site_name }} | {{ config.site_description }}</title>
+  {% elif page and page.meta and page.meta.title %}
+    <title>{{ page.meta.title }} | {{ config.site_name }}</title>
+  {% else %}
+    <title>{% if page.title %}{{ page.title }} | {% endif %}{{ config.site_name }}</title>
+  {% endif %}
+{% endblock %}
+
+{% block extrahead %}
+  {{ super() }}
+  <meta name="robots" content="index, follow">
+
+  {% if page and page.meta %}
+  {% set seo_t = page.meta.seo_type | default('TechArticle') %}
+  {% set page_id_frag = '#software' if seo_t == 'SoftwareApplication' else '#article' %}
+  
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "{{ config.site_url }}#organization",
+        "name": "Phaethon Framework",
+        "url": "{{ config.site_url }}",
+        "sameAs": [
+          "https://github.com/rannd1nt/phaethon",
+          "https://pypi.org/project/phaethon/"
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "{{ config.site_url }}#website",
+        "url": "{{ config.site_url }}",
+        "name": "{{ config.site_name }}",
+        "description": "{{ config.site_description }}",
+        "publisher": { "@id": "{{ config.site_url }}#organization" },
+        "inLanguage": "en-US"
+      },
+      {
+        "@type": "WebPage",
+        "@id": "{{ page.canonical_url }}#webpage",
+        "url": "{{ page.canonical_url }}",
+        "name": "{{ page.meta.title | default(page.title) }}",
+        "description": "{{ page.meta.description | default(config.site_description) }}",
+        "isPartOf": { "@id": "{{ config.site_url }}#website" },
+        "inLanguage": "en-US"{% if not page.is_homepage %},
+        "breadcrumb": {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Phaethon",
+              "item": "{{ config.site_url }}"
+            }
+            {% set pos = namespace(value=2) %}
+            {% if page.ancestors %}
+              {% for nav_item in page.ancestors %}
+                ,{
+                  "@type": "ListItem",
+                  "position": {{ pos.value }},
+                  "name": "{{ nav_item.title }}"
+                  {%- if nav_item.url %},
+                  "item": "{{ config.site_url | trim('/') }}/{{ nav_item.url }}"
+                  {%- endif %}
+                }
+                {% set pos.value = pos.value + 1 %}
+              {% endfor %}
+            {% endif %}
+            ,{
+              "@type": "ListItem",
+              "position": {{ pos.value }},
+              "name": "{{ page.meta.title | default(page.title) }}",
+              "item": "{{ page.canonical_url }}"
+            }
+          ]
+        }{% endif %}
+      },
+      {
+        "@type": "{{ seo_t }}",
+        "@id": "{{ page.canonical_url }}{{ page_id_frag }}",
+        "headline": "{{ page.meta.title | default(page.title) }}",
+        "description": "{{ page.meta.description | default(config.site_description) }}",
+        "keywords": "{{ page.meta.keywords | default('Phaethon, physics-constrained scientific computing, Python, dimensional analysis, SciML') }}",
+        "inLanguage": "en-US",
+        "isPartOf": { "@id": "{{ page.canonical_url }}#webpage" },
+        "publisher": { "@id": "{{ config.site_url }}#organization" },
+        "author": {
+          "@type": "Organization",
+          "@id": "{{ config.site_url }}#organization"
+        }{% if seo_t == 'SoftwareApplication' %},
+        "applicationCategory": "ScientificComputingApplication",
+        "operatingSystem": "OS Independent",
+        "programmingLanguage": ["Python", "Rust"],
+        "softwareVersion": "0.4.0",
+        "softwareRequirements": "Python >= 3.11",
+        "license": "https://opensource.org/licenses/MIT",
+        "codeRepository": "https://github.com/rannd1nt/phaethon",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }{% endif %}{% if seo_t == 'TechArticle' and page.meta.git_revision_date_localized is defined %},
+        "dateModified": "{{ page.meta.git_revision_date_localized }}"{% endif %}
+      }
+    ]
+  }
+  </script>
+  {% endif %}
+{% endblock %}
+
+{% block header %}
+  {% if not (page and (page.is_homepage or page.file.src_path == "getting-started.md")) %}
+    {{ super() }}
+  {% endif %}
+{% endblock %}
+
+{% block tabs %}
+  {% if not (page and (page.is_homepage or page.file.src_path == "getting-started.md")) %}
+    {{ super() }}
+  {% endif %}
+{% endblock %}
+
+{% block container %}
+  {% if page and (page.is_homepage or page.file.src_path == "getting-started.md") %}
+    <div style="background-color: #0a0a0f; min-height: 100vh; width: 100%; margin: 0; padding: 0;">
+      {{ page.content }}
+    </div>
+  {% else %}
+    {{ super() }}
+  {% endif %}
+{% endblock %}
+
+{% block footer %}
+  {% if not (page and (page.is_homepage or page.file.src_path == "getting-started.md")) %}
+    {{ super() }}
+  {% endif %}
+{% endblock %}

@@ -1,4 +1,4 @@
-from .base import DataFrameBackend
+from .protocol import DataFrameBackend
 from .pd_engine.engine import PandasBackend
 from .pl_engine.engine import PolarsBackend
 

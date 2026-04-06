@@ -7,15 +7,15 @@ Phaethon safely handles `decimal.Decimal` to preserve absolute financial integri
 """
 
 from decimal import Decimal
-from phaethon import u
+from phaethon import units
 
 print("--- CLOUD STORAGE BILLING ENGINE ---")
 # A customer transfers exactly 0.1 Petabytes, 3 times.
 # Price is $50,000 per Terabyte.
 
 # 1. The Machine Learning / Math approach (Using .mag / Floats)
-pb_transfer_float = u.Petabyte(0.1)
-tb_converted_float = pb_transfer_float.to(u.Terabyte).mag
+pb_transfer_float = units.Petabyte(0.1)
+tb_converted_float = pb_transfer_float.to(units.Terabyte).mag
 
 # Floating point error accumulation: 0.1 * 3 in floats is NOT exactly 0.3
 total_tb_float = tb_converted_float * 3
@@ -26,8 +26,8 @@ print(f"Float Revenue Billed      : ${revenue_float:,.2f} (INACCURATE!)\n")
 
 
 # 2. The Financial Audit approach (Using .exact / Decimals)
-pb_transfer_exact = u.Petabyte(Decimal('0.1'))
-tb_converted_exact = pb_transfer_exact.to(u.Terabyte).exact
+pb_transfer_exact = units.Petabyte(Decimal('0.1'))
+tb_converted_exact = pb_transfer_exact.to(units.Terabyte).exact
 
 # Decimals preserve absolute mathematical truth
 total_tb_exact = tb_converted_exact * 3

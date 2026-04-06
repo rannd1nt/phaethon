@@ -8,11 +8,11 @@ dynamic safety thresholds based on the machine's active cooling mode.
 
 import pandas as pd
 import phaethon as ptn
-from phaethon import u
+from phaethon import units
 
 class NuclearReactorSchema(ptn.Schema):
     # Standardize all incoming thermal telemetry to strict Celsius
-    core_temp: u.Celsius = ptn.Field(source="Temp_Raw", parse_string=True, on_error='coerce', round=1)
+    core_temp: units.Celsius = ptn.Field(source="Temp_Raw", parse_string=True, on_error='coerce', round=1)
 
     @ptn.post_normalize
     def dynamic_safety_check(cls, df):

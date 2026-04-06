@@ -5,6 +5,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [0.4.0] - 2026-04-06
+
+### The End-to-End Sci-ML & PINNs Update
+Version 0.4.0 represents the most massive architectural leap in Phaethon's history. The framework has evolved from a dimensional data pipeline into a comprehensive Scientific Machine Learning (Sci-ML) ecosystem. We have deeply integrated PyTorch and Scikit-Learn, deployed a zero-allocation Rust backend, and expanded our native physics capabilities to encompass complex differential calculus and linear algebra.
+
+### Major Features
+* **Neural PDEs & PINNs (`phaethon.pinns`):**
+  * Introduced `PTensor`, a strict PyTorch autograd subclass injected with dimensional DNA that tracks physical units across matrix operations and backpropagation.
+  * Native Differential Calculus: Added `pnn.grad`, `pnn.laplace`, `pnn.div`, and `pnn.curl`. These functions automatically infer and synthesize derivative physical units across the computational graph.
+  * Physics-Informed Loss Tribunals: Added `ResidualLoss` to enforce strict equation balancing on PDE residuals, and `AxiomLoss` to generate penalty gradients for predictions violating physical boundaries.
+  * Neural Operators: Implemented `SpectralConv1d` (Fourier Neural Operators) with dimensional inversion (`fft`/`ifft`), and `BuckinghamPi` SVD projection layers for dynamic dimensionless grouping.
+  * Added `pnn.assemble`, `pnn.cat`, and `pnn.stack` for dimension-safe tensor concatenation and neural hidden-layer preparation.
+* **Classic Sci-ML Bridge (`phaethon.ml`):**
+  * Introduced `DimensionalEstimator` to automatically infer and enforce physical dimensions on any standard Scikit-Learn model.
+  * Introduced `AxiomValidator` to forcefully clip impossible machine learning predictions to their nearest valid physical boundaries.
+  * Added `BuckinghamTransformer` for automated, SVD-powered dimensionless feature synthesis.
+  * Added physics-aware metrics: `physics_mean_absolute_error`, `physics_mean_squared_error`, and `physics_r2_score`.
+  * Added `physics_train_test_split` to securely partition datasets without degrading `BaseUnit` objects.
+* **Scientific Computing (`phaethon.linalg` & `phaethon.random`):**
+  * Implemented physics-aware linear algebra (`ptn.linalg.inv`, `det`, `solve`, `norm`) that dynamically synthesizes new dimensions (e.g., Matrix Determinant of Length = Volume).
+  * Added physical stochastic generators (`ptn.random.uniform`, `normal`, `poisson`, `exponential`) that securely bound statistical noise against physical axioms.
+* **Polyglot Dataset & I/O (`phaethon.Dataset`):**
+  * Introduced the `Dataset` columnar store capable of holding `PTensor`, `BaseUnit`, and naked arrays side-by-side.
+  * Features the Series Proxy (`.raw`, `.array`, `.tensor`) for zero-copy extraction targeting specific pipeline backends.
+  * Added `ptn.save` and `ptn.load` featuring the new `.phx` (Phaethon Archive) format equipped with cryptographic SHA-256 integrity validation.
+  * Added external interoperability with `.parquet` (PyArrow) and `.h5` (HDF5).
+  * Added `Schema.astensor()` to automatically bridge tabular DataFrames into PyTorch `Dataset`s, natively factorizing semantic string concepts into `torch.int64` embedding tensors.
+* **Rust-Powered Normalization (`phaethon._rust_core`):**
+  * Deployed a custom Rust backend (`fast_fused_normalize`) compiled via PyO3/Maturin.
+  * The Rust engine now natively evaluates `min`/`max` axiom boundaries, `target_mult`, and `on_error` clipping directly at the memory level, bypassing the Python GIL entirely during string parsing.
+
+### Core Physics Engine Enhancements
+* **Massive Domain Expansion:** Separated and expanded the `_DIMENSIONAL_DNA` into distinct architectural files (`astrophysics`, `quantum`, `nuclear`, `electromagnetism`, `photometry`, `thermodynamics`, `viscosity`, etc.).
+* **Logarithmic Algebra:** Added native support for non-linear scale arithmetic (`@axiom.logarithmic`). Natively handles addition/subtraction via implicit linearization and strictly blocks illegal exponentiation or modulo operations.
+* **Metaclass-Driven AST:** Dynamic Dimensional Synthesis now tracks anonymous units seamlessly without losing their structural SI DNA.
+* **Testing & Quality Assurance:** Restructured the internal `tests/` directory to professional `pytest` standards and integrated `hypothesis` for comprehensive property-based testing.
+
+### Breaking Changes & Deprecations
+* **Python Support:** Dropped support for Python 3.10. Phaethon now strictly requires **Python >= 3.11**.
+* **Build System:** Migrated the build backend from `setuptools` to `maturin` to support the new Rust core. 
+* **Axiom Derivation Syntax:** Using explicit list arguments (`mul=[...]`, `div=[...]`) in `@axiom.derive` is now officially **deprecated** and will emit a `DeprecationWarning`. Please migrate to the new Metaclass mathematical syntax (e.g., `@axiom.derive(u.Joule / u.Second)`).
+* **Exception Hierarchy:** The engine now enforces stricter exception routing. Mismatched PDE residuals will trigger `EquationBalanceError`, and isomorphic interactions (e.g., `Hertz + Becquerel`) will trigger `SemanticMismatchError`.
+
 ---
 
 ## [0.3.1] - 2026-03-13

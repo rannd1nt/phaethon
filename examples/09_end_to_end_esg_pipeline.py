@@ -9,7 +9,7 @@ The Grand Unified Theory of Phaethon. This script demonstrates how to:
 
 import pandas as pd
 import phaethon as ptn
-from phaethon import axiom, u
+from phaethon import axiom, units
 from phaethon.core.base import BaseUnit
 
 # =========================================================================
@@ -19,7 +19,7 @@ from phaethon.core.base import BaseUnit
 class CarbonIntensity(BaseUnit):
     dimension = "carbon_intensity"
 
-@axiom.derive(u.Kilogram / u.KilowattHour)
+@axiom.derive(units.Kilogram / units.KilowattHour)
 class KgCO2PerKWh(CarbonIntensity):
     symbol = "kgCO2/kWh"
     # Best Practice: Aliases allow Schema Regex to intelligently capture dirty text

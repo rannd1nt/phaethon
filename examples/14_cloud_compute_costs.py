@@ -7,7 +7,7 @@ to calculate exact server compute costs dynamically.
 """
 
 import phaethon as ptn
-from phaethon import BaseUnit, axiom, u
+from phaethon import BaseUnit, axiom, units
 from decimal import Decimal
 
 # 1. Bootstrapping a non-physics dimension: Currency
@@ -19,7 +19,7 @@ class USDollar(CurrencyUnit):
     base_multiplier = 1.0
 
 # 2. Grand Finale Algebra: Cost = USD / (Gigabytes * Hours)
-@axiom.derive(USDollar / (u.Gigabyte * u.Hour))
+@axiom.derive(USDollar / (units.Gigabyte * units.Hour))
 class CloudComputeRate(BaseUnit):
     symbol = "$/GB-hr"
 
@@ -27,8 +27,8 @@ print("--- AWS/GCP COMPUTE BILLING ENGINE ---")
 
 # Scenario: A Data Processing Job uses 64 GB of RAM for 4.5 Hours.
 # The Cloud Provider charges $0.05 per GB-hour.
-job_ram = u.Gigabyte(64.0)
-job_duration = u.Hour(4.5)
+job_ram = units.Gigabyte(64.0)
+job_duration = units.Hour(4.5)
 aws_rate = CloudComputeRate(Decimal('0.05'))
 
 print(f"RAM Allocated  : {job_ram}")

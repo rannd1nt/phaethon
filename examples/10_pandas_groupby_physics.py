@@ -6,7 +6,7 @@ daily IoT power production into monthly energy summaries.
 """
 
 import pandas as pd
-from phaethon import u
+from phaethon import units
 
 print("--- SMART GRID IoT AGGREGATION ---")
 
@@ -23,13 +23,13 @@ print(df_daily)
 
 # Physics Vectorization inside Pandas!
 # Power (MW) * Time (Hours) = Energy (MWh)
-power = u.Megawatt(df_daily['Avg_Power_MW'].values)
-time = u.Hour(df_daily['Runtime_Hours'].values)
+power = units.Megawatt(df_daily['Avg_Power_MW'].values)
+time = units.Hour(df_daily['Runtime_Hours'].values)
 
 energy_synthesized = power * time
 
 # Extract the magnitudes safely back into the DataFrame
-df_daily['Energy_MWh'] = energy_synthesized.to(u.MegawattHour).mag
+df_daily['Energy_MWh'] = energy_synthesized.to(units.MegawattHour).mag
 
 # Standard Pandas Aggregation
 monthly_summary = df_daily.groupby(['Zone', 'Month'])['Energy_MWh'].sum().reset_index()

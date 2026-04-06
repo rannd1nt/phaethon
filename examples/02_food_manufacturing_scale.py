@@ -7,13 +7,13 @@ pounds) into strict metric factory standards (Milliliters, Grams) instantly.
 
 import pandas as pd
 import phaethon as ptn
-from phaethon import u
+from phaethon import units
 
 class RecipeScaleSchema(ptn.Schema):
-    liquid_vol: u.Milliliter = ptn.Field(
+    liquid_vol: units.Milliliter = ptn.Field(
         source="Liquid_Input", parse_string=True, on_error='coerce', round=1
     )
-    dry_mass: u.Gram = ptn.Field(
+    dry_mass: units.Gram = ptn.Field(
         source="Dry_Weight", parse_string=True, on_error='coerce', round=1
     )
 

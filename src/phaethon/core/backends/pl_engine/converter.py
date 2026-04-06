@@ -5,6 +5,7 @@ if HAS_POLARS:
     import polars as pl
 import numpy as np
 import pandas as pd
+import warnings
 from typing import Any
 from ...registry import ureg
 from ....exceptions import AxiomViolationError, NormalizationError, DimensionMismatchError
@@ -21,7 +22,14 @@ class ConverterStage:
     ) -> pl.Expr:
         
         active_context = get_merged_context(getattr(field, 'context', {}))
-        ignore_bound = get_config("ignore_axiom_bound", getattr(field, 'ignore_axiom_bound', None))
+        if getattr(field, 'axiom_strictness_level', None) is not None:
+            active_context["axiom_strictness_level"] = field.axiom_strictness_level
+        if getattr(field, 'on_error', None) is not None:
+            active_context["default_on_error"] = field.on_error
+
+        strictness = get_config("axiom_strictness_level", getattr(field, 'axiom_strictness_level', None)) or "default"
+        should_warn = strictness in ("strict_warn", "loose_warn")
+        should_enforce = strictness in ("default", "strict", "strict_warn")
 
         def _vectorized_numpy_bridge(s: pl.Series, *args: Any, **kwargs: Any) -> pl.Series:
             if s.dtype == pl.Struct:
@@ -44,9 +52,8 @@ class ConverterStage:
                             source_cls = ureg().get_unit_class(u_str, expected_dim=target_dim)
                             raw_masked = values_array[mask].astype(float)
                             
-                            if ignore_bound:
-                                axiom_min = None
-                                axiom_max = None
+                            if strictness == "ignore":
+                                axiom_min, axiom_max = None, None
                             else:
                                 axiom_min = getattr(source_cls, '__axiom_min__', None)
                                 axiom_max = getattr(source_cls, '__axiom_max__', None)
@@ -54,22 +61,30 @@ class ConverterStage:
                             if axiom_min is not None:
                                 violators = raw_masked < float(axiom_min)
                                 if violators.any():
-                                    if on_err == 'raise':
-                                        raise AxiomViolationError(f"Raw '{u_str}' violates min bound of {axiom_min}.")
-                                    elif on_err == 'clip':
-                                        raw_masked[violators] = float(axiom_min)
-                                    else:
-                                        raw_masked[violators] = np.nan
-                                    
+                                    msg = f"Raw '{u_str}' violates min bound of {axiom_min}."
+                                    if should_warn and not should_enforce:
+                                        warnings.warn(f"Phaethon Axiom Warning: {msg}", category=UserWarning, stacklevel=2)
+                                    if should_enforce:
+                                        if on_err == 'raise':
+                                            raise AxiomViolationError(msg)
+                                        elif on_err == 'clip':
+                                            raw_masked[violators] = float(axiom_min)
+                                        else:
+                                            raw_masked[violators] = np.nan
+                                        
                             if axiom_max is not None:
                                 violators = raw_masked > float(axiom_max)
                                 if violators.any():
-                                    if on_err == 'raise':
-                                        raise AxiomViolationError(f"Raw '{u_str}' violates max bound of {axiom_max}.")
-                                    elif on_err == 'clip':
-                                        raw_masked[violators] = float(axiom_max)
-                                    else:
-                                        raw_masked[violators] = np.nan
+                                    msg = f"Raw '{u_str}' violates max bound of {axiom_max}."
+                                    if should_warn and not should_enforce:
+                                        warnings.warn(f"Phaethon Axiom Warning: {msg}", category=UserWarning, stacklevel=2)
+                                    if should_enforce:
+                                        if on_err == 'raise':
+                                            raise AxiomViolationError(msg)
+                                        elif on_err == 'clip':
+                                            raw_masked[violators] = float(axiom_max)
+                                        else:
+                                            raw_masked[violators] = np.nan
                             
                             src_name = getattr(source_cls, '__name__', str(source_cls))
                             tgt_name = getattr(field.target_unit, '__name__', str(field.target_unit))
@@ -114,9 +129,8 @@ class ConverterStage:
                         
                         raw_masked = values_array[pure_num_mask].astype(float)
                         
-                        if ignore_bound:
-                            axiom_min = None
-                            axiom_max = None
+                        if strictness == "ignore":
+                            axiom_min, axiom_max = None, None
                         else:
                             axiom_min = getattr(source_cls, '__axiom_min__', None)
                             axiom_max = getattr(source_cls, '__axiom_max__', None)
@@ -124,22 +138,30 @@ class ConverterStage:
                         if axiom_min is not None:
                             violators = raw_masked < float(axiom_min)
                             if violators.any():
-                                if on_err == 'raise':
-                                    raise AxiomViolationError(f"Pure number violates min bound of {axiom_min}.")
-                                elif on_err == 'clip':
-                                    raw_masked[violators] = float(axiom_min)
-                                else:
-                                    raw_masked[violators] = np.nan
-                                    
+                                msg = f"Pure number violates min bound of {axiom_min}."
+                                if should_warn and not should_enforce:
+                                    warnings.warn(f"Phaethon Axiom Warning: {msg}", category=UserWarning, stacklevel=2)
+                                if should_enforce:
+                                    if on_err == 'raise':
+                                        raise AxiomViolationError(msg)
+                                    elif on_err == 'clip':
+                                        raw_masked[violators] = float(axiom_min)
+                                    else:
+                                        raw_masked[violators] = np.nan
+                                        
                         if axiom_max is not None:
                             violators = raw_masked > float(axiom_max)
                             if violators.any():
-                                if on_err == 'raise':
-                                    raise AxiomViolationError(f"Pure number violates max bound of {axiom_max}.")
-                                elif on_err == 'clip':
-                                    raw_masked[violators] = float(axiom_max)
-                                else:
-                                    raw_masked[violators] = np.nan
+                                msg = f"Pure number violates max bound of {axiom_max}."
+                                if should_warn and not should_enforce:
+                                    warnings.warn(f"Phaethon Axiom Warning: {msg}", category=UserWarning, stacklevel=2)
+                                if should_enforce:
+                                    if on_err == 'raise':
+                                        raise AxiomViolationError(msg)
+                                    elif on_err == 'clip':
+                                        raw_masked[violators] = float(axiom_max)
+                                    else:
+                                        raw_masked[violators] = np.nan
 
                         if getattr(source_cls, '__name__', '') == getattr(field.target_unit, '__name__', ''):
                             result_array[pure_num_mask] = raw_masked

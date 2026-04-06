@@ -46,7 +46,7 @@ print(f"Method: Pint + Pandas (.apply)  | Time: {duration_pint:.4f}s")
 # 2. PHAETHON (Vectorized Schema Processing)
 # ==========================================
 class ConversionSchema(ptn.Schema):
-    mass_kg: ptn.u.Kilogram = ptn.Field(
+    mass_kg: ptn.units.Kilogram = ptn.Field(
         source="value", 
         unit_col="unit_label",
         on_error='coerce'

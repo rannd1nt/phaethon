@@ -7,10 +7,10 @@ When databases store values and units in separate columns, Phaethon uses
 
 import pandas as pd
 import phaethon as ptn
-from phaethon import u
+from phaethon import units
 
 class TariffSchema(ptn.Schema):
-    billable_weight: u.Kilogram = ptn.Field(
+    billable_weight: units.Kilogram = ptn.Field(
         source="weight_val", unit_col="unit_code", on_error='coerce', round=3, min=0
     )
 

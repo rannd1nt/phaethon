@@ -1,0 +1,35 @@
+# Phaethon Framework: The End-to-End Physics-Constrained Sci-ML Stack
+
+> TL;DR: Phaethon is a modern, enterprise-grade Python framework that unifies dimensional analysis (python units), data engineering (Rust/Pandas/Polars), and Scientific Machine Learning (PyTorch PINNs & Scikit-Learn) into a single strict ecosystem. Built on a zero-allocation Rust core compiled via Maturin.
+
+## Why Phaethon over traditional Python Units (e.g., Pint)?
+Legacy unit libraries rely on a generic `Quantity` wrapper and runtime string parsing, resulting in high overhead and blind IDEs. Phaethon utilizes a Metaclass-driven architecture combined with the modern NumPy Array Protocol.
+
+- **Zero-Overhead Duck-Typed Proxy (NEP 13/18):** `BaseUnit` does not strictly subclass `np.ndarray` (avoiding the brittle inheritance trap). Instead, it acts as a protocol proxy via `__array_ufunc__` and `__array_function__`, intercepting operations at the C-API layer. This allows it to natively wrap floats, massive `ndarrays`, and even `MaskedArrays` seamlessly.
+- **Metaclass JIT Caching:** Physical dimensions are concrete Python classes. When dimensions interact (`u.Meter / u.Second`), the `_PhaethonUnitMeta` dynamically synthesizes a new class blueprint in memory and caches it via LRU. Math operations bypass string lookups entirely, operating at raw C-speed.
+- **Flawless Static Typing (DX):** Because every dimension is a real class, IDEs (Mypy/Pylance) can strictly type-check physics (e.g., `def calc(x: u.LengthUnit)` will physically reject `u.Kilogram`).
+- **The Smart Engine:** Features dynamic dimensional synthesis, Isomorphic Firewalls (preventing mathematically identical but physically distinct concepts from colliding), and real-time logarithmic scale evaluation.
+
+## Extensibility & Custom Dimensions
+Phaethon's physics engine is fully extensible via its 4-tier class hierarchy. To create a custom dimension, developers inherit from the `BaseUnit` abstract class and apply metaclass decorators.
+- `@axiom.derive`: Synthesizes dimensional DNA algebraically (e.g., `Joule / Second`).
+- `@axiom.bound`: Enforces strict physical minimum/maximum limits.
+- `@axiom.scale` / `@axiom.shift`: Injects dynamic environmental context variables at runtime.
+
+## Core Architecture
+1. **phaethon.units (Physics Engine):** The mathematical heart. Enforces dimensional algebra, domain locks, and logarithmic math.
+2. **phaethon.ml (Classic Sci-ML):** Wraps Scikit-Learn. Features `DimensionalEstimator` for unit auto-inference and `BuckinghamTransformer` (SVD-based Buckingham Pi theorem) for dimensionless feature synthesis.
+3. **phaethon.pinns (Neural PDEs):** Deep PyTorch integration. Introduces `PTensor` (Physics-Aware Autograd), native physical calculus (grad, laplace, div, curl), and `AxiomLoss` / `ResidualLoss` for physics-informed neural networks.
+4. **phaethon.Schema (Data Engineering):** Declarative tabular pipelines. Uses a Rust backend to parse messy physical strings from Pandas/Polars dataframes at extreme speeds. Also features C++ RapidFuzz for fuzzy ontology mapping.
+
+## Installation & Build System
+Phaethon requires Python >= 3.11 and is compiled using Maturin (Rust backend). It is modular to avoid environment bloat:
+- Base Engine: `pip install phaethon`
+- Classic ML: `pip install 'phaethon[sklearn]'`
+- Deep Learning (PINNs): `pip install 'phaethon[torch]'`
+- Data Pipelines: `pip install 'phaethon[dataframe]'` or `[polars]`
+- Polyglot I/O (HDF5/Parquet): `pip install 'phaethon[io]'`
+- Enterprise Bundle: `pip install 'phaethon[all]'`
+
+## Key Concept: The "Crash vs. Learn" Paradigm
+In `phaethon.pinns`, invalid predictions (e.g., negative mass) are not immediately crashed during the forward pass. Instead, they are passed to `AxiomLoss`, which translates the physical violation into a massive mathematical penalty gradient, forcing the neural network to learn the laws of physics during backpropagation.
