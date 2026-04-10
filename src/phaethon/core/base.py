@@ -100,6 +100,7 @@ def _fmtdim(u_cls: Any) -> str:
 
 class _PhaethonUnitMeta(type):
     _algebra_lock = threading.RLock()
+    _evaluating = threading.local()
     
     def __new__(mcs, name: str, bases: tuple[type, ...], namespace: dict[str, Any]) -> _PhaethonUnitMeta:
         cls = super().__new__(mcs, name, bases, namespace)
@@ -143,9 +144,20 @@ class _PhaethonUnitMeta(type):
     @staticmethod
     def _get_dynamic_multiplier(cls_or_scalar: Any, context: dict[str, Any], is_array: bool) -> float:
         if isinstance(cls_or_scalar, type) and hasattr(cls_or_scalar, '_to_base_value'):
-            m1 = cls_or_scalar(1.0, context=context)._to_base_value()
-            m0 = cls_or_scalar(0.0, context=context)._to_base_value()
-            mult = m1 - m0
+            if not hasattr(_PhaethonUnitMeta._evaluating, 'active'):
+                _PhaethonUnitMeta._evaluating.active = set()
+            
+            if cls_or_scalar in _PhaethonUnitMeta._evaluating.active:
+                return float(cls_or_scalar.base_multiplier)
+            
+            _PhaethonUnitMeta._evaluating.active.add(cls_or_scalar)
+            
+            try:
+                m1 = cls_or_scalar(1.0, context=context)._to_base_value()
+                m0 = cls_or_scalar(0.0, context=context)._to_base_value()
+                mult = m1 - m0
+            finally:
+                _PhaethonUnitMeta._evaluating.active.remove(cls_or_scalar)
         else:
             mult = cls_or_scalar
         return float(mult)
@@ -158,7 +170,8 @@ class _PhaethonUnitMeta(type):
                                             getattr(other, '_signature', frozenset()), 'mul')
                 new_mult = float(cls.base_multiplier) * float(other.base_multiplier)
                 new_name = _compact_name('mul', cls.__name__, other.__name__)
-                new_symbol = f"{getattr(cls, 'symbol', '')}*{getattr(other, 'symbol', '')}"
+                s1, s2 = getattr(cls, 'symbol', ''), getattr(other, 'symbol', '')
+                new_symbol = f"{s1}·{s2}" if s1 and s2 else (s1 or s2)
                 new_cls = cls._create_derived_class(new_name, new_sig, new_mult, new_symbol)
             elif isinstance(other, (int, float)):
                 new_sig = getattr(cls, '_signature', frozenset())
@@ -169,7 +182,7 @@ class _PhaethonUnitMeta(type):
             else:
                 return NotImplemented # type: ignore
 
-            if new_cls.__name__.startswith('Derived_'):
+            if new_cls.__name__.startswith('Derived_') and not getattr(new_cls, '__ast_assigned__', False):
                 left_cls, right_cls = cls, other
                 def new_to_base(self_obj: Any) -> Any:
                     is_arr = HAS_NUMPY and isinstance(self_obj._value, (np.ndarray, np.generic))
@@ -186,6 +199,7 @@ class _PhaethonUnitMeta(type):
 
                 new_cls._to_base_value = new_to_base
                 new_cls._from_base_value = new_from_base # type: ignore
+                new_cls.__ast_assigned__ = True
             
             return new_cls
 
@@ -207,7 +221,8 @@ class _PhaethonUnitMeta(type):
                     raise ZeroDivisionError()
                 new_mult = float(cls.base_multiplier) / float(other.base_multiplier)
                 new_name = _compact_name('div', cls.__name__, other.__name__)
-                new_symbol = f"{getattr(cls, 'symbol', '')}/{getattr(other, 'symbol', '')}"
+                s1, s2 = getattr(cls, 'symbol', ''), getattr(other, 'symbol', '')
+                new_symbol = f"{s1}/{s2}" if s1 and s2 else (s1 or s2)
                 new_cls = cls._create_derived_class(new_name, new_sig, new_mult, new_symbol)
             elif isinstance(other, (int, float)):
                 if other == 0: raise ZeroDivisionError()
@@ -219,7 +234,7 @@ class _PhaethonUnitMeta(type):
             else:
                 return NotImplemented
 
-            if new_cls.__name__.startswith('Derived_'):
+            if new_cls.__name__.startswith('Derived_') and not getattr(new_cls, '__ast_assigned__', False):
                 left_cls, right_cls = cls, other
                 def new_to_base(self_obj: Any) -> Any:
                     is_arr = HAS_NUMPY and isinstance(self_obj._value, (np.ndarray, np.generic))
@@ -236,6 +251,7 @@ class _PhaethonUnitMeta(type):
 
                 new_cls._to_base_value = new_to_base
                 new_cls._from_base_value = new_from_base
+                new_cls.__ast_assigned__ = True
 
             return new_cls
 
@@ -258,7 +274,7 @@ class _PhaethonUnitMeta(type):
             new_name = _compact_name('pow', cls.__name__, str(power).replace('.', '_'))
             new_cls = cls._create_derived_class(new_name, new_sig, new_mult, new_symbol)
             
-            if new_cls.__name__.startswith('Derived_'):
+            if new_cls.__name__.startswith('Derived_') and not getattr(new_cls, '__ast_assigned__', False):
                 left_cls = cls
                 def new_to_base(self_obj: Any) -> Any:
                     is_arr = HAS_NUMPY and isinstance(self_obj._value, (np.ndarray, np.generic))
@@ -273,6 +289,7 @@ class _PhaethonUnitMeta(type):
 
                 new_cls._to_base_value = new_to_base
                 new_cls._from_base_value = new_from_base
+                new_cls.__ast_assigned__ = True
             
             return new_cls
 
@@ -304,7 +321,7 @@ class _PhaethonUnitMeta(type):
             
             new_cls = cls._create_derived_class(new_name, new_sig, new_mult, new_symbol)
             
-            if new_cls.__name__.startswith('Derived_'):
+            if new_cls.__name__.startswith('Derived_') and not getattr(new_cls, '__ast_assigned__', False):
                 right_cls = cls
                 def new_to_base(self_obj: Any) -> Any:
                     is_arr = HAS_NUMPY and isinstance(self_obj._value, (np.ndarray, np.generic))
@@ -319,6 +336,7 @@ class _PhaethonUnitMeta(type):
 
                 new_cls._to_base_value = new_to_base
                 new_cls._from_base_value = new_from_base # type: ignore
+                new_cls.__ast_assigned__ = True
 
             return new_cls
 
@@ -753,7 +771,8 @@ class BaseUnit(metaclass=_PhaethonUnitMeta):
         if is_exclusive and not is_same_dimension:
             raise SemanticMismatchError(f"Exclusive Domain Locked: Cannot cast '{self.__class__.__name__}' directly to '{TargetClass.__name__}'.")
 
-        merged_context = {**self.context}
+        global_ctx = get_config("context") or {}
+        merged_context = {**global_ctx, **self.context}
         if context: merged_context.update(context)
         
         original_context = self.context
@@ -1116,9 +1135,21 @@ class BaseUnit(metaclass=_PhaethonUnitMeta):
         """
         The Base Unit Converter (~).
         """
+        if self.dimension == 'anonymous' or getattr(self, 'is_anonymous', False):
+            from ..exceptions import SemanticMismatchError
+            raise SemanticMismatchError(
+                f"Cannot resolve a canonical Base Unit for an anonymous/synthesized dimension.\n"
+                f"DNA: {self.decompose()}\n"
+            )
+            
         from .registry import ureg
-        base_cls = ureg().baseof(self.dimension)
-        return self.to(base_cls)
+        try:
+            base_cls = ureg().baseof(self.dimension)
+            return self.to(base_cls)
+        except ValueError:
+            raise DimensionMismatchError(
+                f"The dimension '{self.dimension}' is registered but lacks a defined Base Unit."
+            )
     
     def __array__(self, dtype: Any = None) -> Any:
         if HAS_NUMPY: return np.asarray(self._value, dtype=dtype)

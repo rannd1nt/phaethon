@@ -93,7 +93,7 @@ class ConverterStage:
                                 result_array[mask] = raw_masked
                             else:
                                 source_instances = source_cls(raw_masked, context=active_context)
-                                target_instances = source_instances.to(field.target_unit)
+                                target_instances = source_instances.to(field.target_unit, active_context)
                                 result_array[mask] = target_instances.mag
                                 
                         except Exception as e:
@@ -166,7 +166,7 @@ class ConverterStage:
                         if getattr(source_cls, '__name__', '') == getattr(field.target_unit, '__name__', ''):
                             result_array[pure_num_mask] = raw_masked
                         else:
-                            result_array[pure_num_mask] = source_cls(raw_masked, context=active_context).to(field.target_unit).mag
+                            result_array[pure_num_mask] = source_cls(raw_masked, context=active_context).to(field.target_unit, active_context).mag
                             
                     except Exception as e:
                         if on_err == 'raise':

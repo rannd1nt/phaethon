@@ -30,7 +30,7 @@ def _auto_map_args(args: tuple[Any, ...]) -> dict[str, Any]:
     """Magically maps positional arguments to variable names from the caller's frame."""
     if not args: return {}
     try:
-        caller_frame = inspect.currentframe().f_back.f_back.f_back # type: ignore
+        caller_frame = inspect.currentframe().f_back.f_back# type: ignore
         caller_locals = caller_frame.f_locals
         id_to_name = {id(v): k for k, v in caller_locals.items() if not k.startswith('_')}
         
@@ -220,8 +220,7 @@ class _IlocIndexer:
 
 
 class Dataset(Mapping[str, Series]):
-    """
-    A unified, dimension-aware columnar data structure.
+    """    A unified, dimension-aware columnar data structure.
     """
     
     def __init__(self, data: DatasetInput | None = None, *args: Any, **kwargs: Any) -> None:
@@ -293,10 +292,47 @@ class Dataset(Mapping[str, Series]):
         lengths = [arr.shape[0] for arr in self._mag_store.values() if arr.ndim > 0]
         self._length = max(lengths) if lengths else 1
 
-    def __getitem__(self, key: str) -> Series:
-        if key not in self._meta_store:
-            raise KeyError(f"Column '{key}' not found in Dataset.")
-        return Series(key, self._mag_store[key], self._meta_store[key])
+    @overload
+    def __getitem__(self, key: str) -> Series: ...
+    @overload
+    def __getitem__(self, key: list[str] | tuple[str, ...]) -> 'Dataset': ...
+    @overload
+    def __getitem__(self, key: Any) -> 'Dataset': ...
+    def __getitem__(self, key: Any) -> Any:
+        if isinstance(key, str):
+            if key not in self._meta_store:
+                raise KeyError(f"Column '{key}' not found in Dataset.")
+            return Series(key, self._mag_store[key], self._meta_store[key])
+            
+        if isinstance(key, Series):
+            key = key.raw
+            
+        if HAS_NUMPY and isinstance(key, np.ndarray) and key.dtype == bool:
+            if key.ndim != 1:
+                raise ValueError("Boolean mask must be 1-dimensional.")
+            
+            new_ds = self.__class__.__new__(self.__class__)
+            new_ds._meta_store = self._meta_store.copy()
+            new_ds._mag_store = {}
+            
+            for k, v in self._mag_store.items():
+                if v.ndim > 0:
+                    safe_mask = key[:v.shape[0]]
+                    new_ds._mag_store[k] = v[safe_mask]
+                else:
+                    new_ds._mag_store[k] = v
+                    
+            new_ds._calculate_length()
+            return new_ds
+            
+        if isinstance(key, (list, tuple)):
+            new_ds = self.__class__.__new__(self.__class__)
+            new_ds._meta_store = {k: self._meta_store[k] for k in key}
+            new_ds._mag_store = {k: self._mag_store[k] for k in key}
+            new_ds._calculate_length()
+            return new_ds
+
+        raise TypeError(f"Invalid indexer type for Dataset: {type(key).__name__}")
 
     def __iter__(self) -> Iterator[str]:
         return iter(self._meta_store)
