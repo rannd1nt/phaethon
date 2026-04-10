@@ -93,7 +93,7 @@ class ConverterStage:
                             result_array[mask] = raw_masked
                         else:
                             source_instances = source_cls(raw_masked, context=active_context)
-                            target_instances = source_instances.to(field.target_unit)
+                            target_instances = source_instances.to(field.target_unit, active_context)
                             result_array[mask] = target_instances.mag
                             
                     except UnitNotFoundError:

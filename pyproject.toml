@@ -21,7 +21,8 @@ keywords = [
 ]
 
 dependencies = [
-    "numpy>=1.26.0"
+    "numpy>=1.26.0",
+    "packaging>=23.0"
 ]
 
 classifiers = [

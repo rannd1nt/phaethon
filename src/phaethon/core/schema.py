@@ -291,7 +291,8 @@ class Schema(metaclass=SchemaMeta):
         cls, 
         bound_val: _PhysicalBound, 
         target_unit: type[BaseUnit], 
-        aliases: AliasRegistry | None = None
+        aliases: AliasRegistry | None = None, 
+        context: ContextDict | None = None
     ) -> float:
         """Internal helper to convert string boundaries ('50 kg') into physical floats."""
         if bound_val is None:
@@ -312,7 +313,7 @@ class Schema(metaclass=SchemaMeta):
                 val = float(match.group(1))
                 u_str = match.group(2)
                 source_cls = ureg().get_unit_class(u_str, expected_dim=getattr(target_unit, 'dimension', None))
-                return source_cls(val).to(target_unit).mag
+                return source_cls(val).to(target_unit, context).mag
                 
         return float(bound_val) # type: ignore
         
