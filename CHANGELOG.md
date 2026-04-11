@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+---
+
+## [0.4.1] - 2026-04-11
+
+### Stability, Type Refinery & Stochastic Engine
+This is a maintenance and refinement release focused on internal algebraic stability, strict type hinting, and a complete overhaul of the stochastic physics engine. Version 0.4.1 resolves critical recursion bugs and introduces an isolated RandomState to ensure physical simulations do not pollute the global NumPy environment.
+
+### Core Physics & Engine Fixes
+* **fix(base):** Resolved the `Ouroboros RecursionError` using a thread-local cycle detector during complex unit synthesis.
+* **fix(base):** Enforced strict `SemanticMismatchError` on the bitwise invert (`~`) operator for anonymous units to prevent nonsensical dimensional inversions.
+* **fix(engine):** Injected `active_context` into the `.to()` method, resolving the "Currency/Mach Amnesia" bug where environmental variables were lost during nested conversions.
+* **fix(build):** Added the missing `packaging` dependency to `pyproject.toml`.
+* **refactor(core):** Separated the `_typing` module from `compat` to eliminate circular dependency risks and improve static analysis speed.
+
+### Stochastic Physics (phaethon.random)
+* **feat(random):** Overhauled `phaethon.random` to utilize an isolated `RandomState` engine via `np.random.default_rng()`, ensuring reproducibility in Monte Carlo simulations.
+* **feat(random):** Added `randint` and `choice` for discrete physical state generation (e.g., quantized energy levels).
+* **feat(random):** Added `shuffle` (in-place) and `permutation` (out-of-place) for physical tensor randomization without stripping dimensional DNA.
+* **feat(random):** Implemented `ptn.random.seed()` to allow localized stochastic control.
+
+### Developer Experience & Type Hinting
+* **feat(typing):** Introduced comprehensive `.pyi` stub files for `base` and `random` modules, providing high-fidelity IDE "Blue Variable" callable hints.
+* **feat(typing):** Achieved 100% Pylance/Mypy compliance for complex mathematical overloads while preserving docstring visibility in IDE tooltips.
+* **chore(docs):** Synchronized `.readthedocs.yaml` and injected `[imaging]` dependencies to restore OpenGraph (OG) social cards on production builds.
+
+### Data Engineering (phaethon.Dataset)
+* **fix(dataset):** Fixed the `f_locals` stack depth detection for automated column mapping.
+* **feat(dataset):** Implemented ragged boolean masking support for physical datasets, allowing complex filtering via `ds[ds['field'] > limit]`.
 
 ## [0.4.0] - 2026-04-06
 
